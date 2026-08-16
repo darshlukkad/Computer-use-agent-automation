@@ -1,0 +1,23 @@
+# --- target application (vendored third-party, see ParaBank-Mock-app/VENDOR.md)
+ParaBank-Mock-app/target/
+ParaBank-Mock-app/.m2/
+ParaBank-Mock-app/.git/
+
+# --- node
+node_modules/
+dist/
+*.tsbuildinfo
+
+# --- secrets
+.env
+.env.*
+!.env.example
+
+# --- python
+__pycache__/
+.venv/
+*.pyc
+
+# --- local run artifacts
+*.log
+.DS_Store

@@ -1,0 +1,47 @@
+package com.parasoft.parabank.domain;
+
+import java.math.BigDecimal;
+
+import jakarta.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement(name = "billPayResult")
+public class BillPayResult {
+
+    private String payeeName;
+
+    private BigDecimal amount;
+
+    private int accountId;
+
+    public BillPayResult() { /* no-arg constructor for serialization */ }
+
+    public BillPayResult(int accountId, BigDecimal amount, String payeeName) {
+        this.accountId = accountId;
+        this.amount = amount;
+        this.payeeName = payeeName;
+    }
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
+    }
+
+    public String getPayeeName() {
+        return payeeName;
+    }
+
+    public void setPayeeName(String payeeName) {
+        this.payeeName = payeeName;
+    }
+
+    public int getAccountId() {
+        return accountId;
+    }
+
+    public void setAccountId(int accountId) {
+        this.accountId = accountId;
+    }
+}

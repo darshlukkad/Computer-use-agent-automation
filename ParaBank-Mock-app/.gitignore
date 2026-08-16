@@ -1,0 +1,37 @@
+*.bak
+/target/
+hs_err_*.log
+*.log
+
+# Parasoft-specific:
+.parasoft
+.jtest/
+jtest-ma/
+jtest-sa/
+jtest-ut/
+jtest-mt-cov/
+jtest-ft-cov/
+/soatest/.metadata/
+/soatest/localsettings.properties
+/soatest/report-bookstore/
+/soatest/report-parabank/
+/soatest/TestAssets/test_templates/
+/soatest/stubs/
+
+# Phabricator Arcanist
+/.arcconfig
+
+# All below configurations are copied from: https://github.com/github/gitignore/blob/master/Global/JetBrains.gitignore 
+# Covers JetBrains IDEs: IntelliJ
+# Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
+
+# User-specific stuff:
+**/.idea/**/workspace.xml
+**/.idea/**/runConfigurations/
+
+# Gradle:
+**/.idea/**/gradle.xml
+**/.idea/**/libraries/
+
+# IntelliJ
+out/

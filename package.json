@@ -1,0 +1,23 @@
+{
+  "name": "cua-automation",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22.6" },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "discover": "node --experimental-strip-types src/cli.ts discover",
+    "replay": "node --experimental-strip-types src/cli.ts replay",
+    "approve": "node --experimental-strip-types src/cli.ts approve",
+    "proxy": "node --experimental-strip-types proxy/server.ts"
+  },
+  "dependencies": {
+    "playwright": "^1.62.1",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "typescript": "^5.9.3"
+  }
+}
