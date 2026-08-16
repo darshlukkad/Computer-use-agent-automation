@@ -3,14 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22.6" },
+  "engines": {
+    "node": ">=22.6"
+  },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test tests/*.test.ts",
-    "discover": "node --experimental-strip-types src/cli.ts discover",
-    "replay": "node --experimental-strip-types src/cli.ts replay",
-    "approve": "node --experimental-strip-types src/cli.ts approve",
-    "proxy": "node --experimental-strip-types proxy/server.ts"
+    "test": "node --import tsx --test tests/*.test.ts",
+    "discover": "node --import tsx src/cli.ts discover",
+    "replay": "node --import tsx src/cli.ts replay",
+    "approve": "node --import tsx src/cli.ts approve",
+    "proxy": "node --import tsx proxy/server.ts"
   },
   "dependencies": {
     "playwright": "^1.62.1",
@@ -18,6 +20,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.15.0",
+    "tsx": "^4.23.12",
     "typescript": "^5.9.3"
   }
 }
