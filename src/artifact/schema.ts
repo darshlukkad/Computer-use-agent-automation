@@ -50,6 +50,19 @@ export const Target = z.object({
   /** The ladder. Order is meaningful: index 0 is rung 1. */
   strategies: z.array(LocatorStrategy).min(1).max(6),
   /**
+   * Which rung actually resolved this control when the artifact was recorded.
+   * Drift is measured against THIS, not against rung 1.
+   *
+   * Without it, any target carrying aspirational upper rungs reports drift on every
+   * healthy run. ParaBank's login fields are the case in point: `role_name` and
+   * `label` resolve to zero elements there and always will, so the step resolves at
+   * rung 3 forever. Baseline 3 means silence; rung 4 would mean something changed.
+   *
+   * Required, not defaulted — a wrong default reintroduces exactly the false
+   * positive this field exists to prevent. The compiler records what it observed.
+   */
+  baselineRung: z.number().int().min(1).max(6),
+  /**
    * Why this identification is expected to be stable. Never executed — it exists
    * because a reviewer must be able to judge a fragile-looking locator, and that
    * reasoning decays if it lives in a separate document.
@@ -328,6 +341,30 @@ export type TenantOverlay = z.infer<typeof TenantOverlay>;
 
 export class ArtifactInvalid extends Error {}
 
+/** Every Target in the artifact, including ones nested inside conditions. */
+export function* targetsOf(a: Capability): Generator<[string, Target]> {
+  function* fromCondition(where: string, c: Condition | undefined): Generator<[string, Target]> {
+    if (!c) return;
+    if (c.kind === "all" || c.kind === "any") {
+      for (const item of c.items) yield* fromCondition(where, item);
+    } else if ("target" in c) {
+      yield [where, c.target];
+    }
+  }
+
+  for (const c of a.preconditions) yield* fromCondition("preconditions", c);
+  for (const s of a.steps) {
+    if (s.target) yield [`step '${s.id}'`, s.target];
+    yield* fromCondition(`step '${s.id}' precondition`, s.precondition);
+    yield* fromCondition(`step '${s.id}' postcondition`, s.postcondition);
+  }
+  for (const r of a.exceptions) {
+    yield* fromCondition(`exception '${r.id}'`, r.when);
+    if (r.recover?.strategy === "dismiss") yield [`exception '${r.id}' recovery`, r.recover.target];
+  }
+  yield* fromCondition("success.checkpoint", a.success.checkpoint);
+}
+
 /**
  * Checks that survive `Capability.parse()` but still make an artifact unsound.
  * Runs at load time, before a browser is opened.
@@ -355,6 +392,13 @@ export function assertArtifactSound(a: Capability): void {
     // Retrying a committed action is how you transfer money twice.
     if (s.maxAttempts > 1 && s.effect !== "observation" && s.effect !== "idempotent_write") {
       fail(`step '${s.id}' has maxAttempts=${s.maxAttempts} but effect '${s.effect}' is not retry-safe`);
+    }
+  }
+
+  // A baseline pointing past the end of the ladder can never be satisfied.
+  for (const [stepId, t] of targetsOf(a)) {
+    if (t.baselineRung > t.strategies.length) {
+      fail(`${stepId}: baselineRung ${t.baselineRung} exceeds its ${t.strategies.length}-rung ladder`);
     }
   }
 

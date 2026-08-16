@@ -22,7 +22,10 @@
     "versionRange": ">=5.0.0 <6.0.0"
   },
   "entry": {
-    "originAllowlist": ["http://localhost:8080", "http://127.0.0.1:8080"],
+    "originAllowlist": [
+      "http://localhost:8080",
+      "http://127.0.0.1:8080"
+    ],
     "path": "/parabank/index.htm"
   },
   "signature": {
@@ -43,56 +46,108 @@
       }
     }
   },
-  "preconditions": [{ "kind": "text_present", "text": "Customer Login" }],
+  "preconditions": [
+    {
+      "kind": "text_present",
+      "text": "Customer Login"
+    }
+  ],
   "steps": [
     {
       "id": "s1_open",
       "action": "navigate",
       "effect": "observation",
       "risk": "safe",
-      "postcondition": { "kind": "text_present", "text": "Customer Login" }
+      "postcondition": {
+        "kind": "text_present",
+        "text": "Customer Login"
+      }
     },
     {
       "id": "s2_username",
       "action": "fill",
-      "value": { "kind": "secret", "ref": "PARABANK_USERNAME" },
+      "value": {
+        "kind": "secret",
+        "ref": "PARABANK_USERNAME"
+      },
       "target": {
         "strategies": [
-          { "kind": "role_name", "role": "textbox", "name": "Username" },
-          { "kind": "label", "text": "Username" },
-          { "kind": "nearby_text", "text": "Username", "direction": "below" }
+          {
+            "kind": "role_name",
+            "role": "textbox",
+            "name": "Username"
+          },
+          {
+            "kind": "label",
+            "text": "Username"
+          },
+          {
+            "kind": "nearby_text",
+            "text": "Username",
+            "direction": "below"
+          }
         ],
-        "rationale": "The input carries no id, no <label> and no aria-label, so rungs 1 and 2 resolve to zero elements on this app. The bold caption 'Username' immediately above the field is the only stable anchor, and it is what a human operator uses. Rungs 1-2 are retained because a future version may add proper labelling."
+        "rationale": "The input carries no id, no <label> and no aria-label, so rungs 1 and 2 resolve to zero elements on this app. The bold caption 'Username' immediately above the field is the only stable anchor, and it is what a human operator uses. Rungs 1-2 are retained because a future version may add proper labelling.",
+        "baselineRung": 3
       },
       "effect": "idempotent_write",
       "risk": "safe",
       "postcondition": {
         "kind": "value_non_empty",
         "target": {
-          "strategies": [{ "kind": "nearby_text", "text": "Username", "direction": "below" }],
-          "rationale": "Same control as the fill; asserts it took a value without recording the credential."
+          "strategies": [
+            {
+              "kind": "nearby_text",
+              "text": "Username",
+              "direction": "below"
+            }
+          ],
+          "rationale": "Same control as the fill; asserts it took a value without recording the credential.",
+          "baselineRung": 1
         }
       }
     },
     {
       "id": "s3_password",
       "action": "fill",
-      "value": { "kind": "secret", "ref": "PARABANK_PASSWORD" },
+      "value": {
+        "kind": "secret",
+        "ref": "PARABANK_PASSWORD"
+      },
       "target": {
         "strategies": [
-          { "kind": "role_name", "role": "textbox", "name": "Password" },
-          { "kind": "label", "text": "Password" },
-          { "kind": "nearby_text", "text": "Password", "direction": "below" }
+          {
+            "kind": "role_name",
+            "role": "textbox",
+            "name": "Password"
+          },
+          {
+            "kind": "label",
+            "text": "Password"
+          },
+          {
+            "kind": "nearby_text",
+            "text": "Password",
+            "direction": "below"
+          }
         ],
-        "rationale": "Same structure as the username field — the caption is a sibling <b>, not a label."
+        "rationale": "Same structure as the username field \u2014 the caption is a sibling <b>, not a label.",
+        "baselineRung": 3
       },
       "effect": "idempotent_write",
       "risk": "safe",
       "postcondition": {
         "kind": "value_non_empty",
         "target": {
-          "strategies": [{ "kind": "nearby_text", "text": "Password", "direction": "below" }],
-          "rationale": "Proves the field was filled without writing the secret into the artifact."
+          "strategies": [
+            {
+              "kind": "nearby_text",
+              "text": "Password",
+              "direction": "below"
+            }
+          ],
+          "rationale": "Proves the field was filled without writing the secret into the artifact.",
+          "baselineRung": 1
         }
       }
     },
@@ -101,15 +156,26 @@
       "action": "click",
       "target": {
         "strategies": [
-          { "kind": "role_name", "role": "button", "name": "Log In" },
-          { "kind": "css", "selector": "input[value='Log In']" }
+          {
+            "kind": "role_name",
+            "role": "button",
+            "name": "Log In"
+          },
+          {
+            "kind": "css",
+            "selector": "input[value='Log In']"
+          }
         ],
-        "rationale": "The submit control is an <input type=submit>, whose accessible name derives from its value attribute, so rung 1 is expected to hold here even though the text fields have no names. CSS is retained as a last resort and firing it is recorded as drift."
+        "rationale": "The submit control is an <input type=submit>, whose accessible name derives from its value attribute, so rung 1 is expected to hold here even though the text fields have no names. CSS is retained as a last resort and firing it is recorded as drift.",
+        "baselineRung": 1
       },
       "effect": "idempotent_write",
       "risk": "safe",
       "timeoutMs": 20000,
-      "postcondition": { "kind": "text_present", "text": "Accounts Overview" }
+      "postcondition": {
+        "kind": "text_present",
+        "text": "Accounts Overview"
+      }
     },
     {
       "id": "s5_await_rows",
@@ -117,13 +183,22 @@
       "effect": "observation",
       "risk": "safe",
       "timeoutMs": 20000,
-      "precondition": { "kind": "text_present", "text": "Accounts Overview" },
+      "precondition": {
+        "kind": "text_present",
+        "text": "Accounts Overview"
+      },
       "postcondition": {
         "kind": "count_at_least",
         "n": 1,
         "target": {
-          "strategies": [{ "kind": "css", "selector": "#accountTable tbody tr" }],
-          "rationale": "The accounts table body is populated by script; the served HTML ships an empty <tbody>. We wait on rows existing rather than on a duration. No semantic locator can express 'rows of this table', so this is a legitimate rung-5 use rather than a degraded fallback."
+          "strategies": [
+            {
+              "kind": "css",
+              "selector": "#accountTable tbody tr"
+            }
+          ],
+          "rationale": "The accounts table body is populated by script; the served HTML ships an empty <tbody>. We wait on rows existing rather than on a duration. No semantic locator can express 'the rows of this grid' — accessibility exposes cells and headers, not a container — so CSS is the deliberate first choice here, not a fallback. Baseline 1 records that: this resolving at rung 1 is healthy, and there is no lower rung it could degrade from.",
+          "baselineRung": 1
         }
       }
     },
@@ -133,9 +208,14 @@
       "extractTo": "balance",
       "target": {
         "strategies": [
-          { "kind": "table_cell", "header": "Balance*", "rowMatch": "${inputs.accountId}" }
+          {
+            "kind": "table_cell",
+            "header": "Balance*",
+            "rowMatch": "${inputs.accountId}"
+          }
         ],
-        "rationale": "The column is located by its visible header text and the row by the account number, so neither column order nor row order matters. This is how an operator reads the same value."
+        "rationale": "The column is located by its visible header text and the row by the account number, so neither column order nor row order matters. This is how an operator reads the same value.",
+        "baselineRung": 1
       },
       "effect": "observation",
       "risk": "safe",
@@ -148,8 +228,14 @@
       "when": {
         "kind": "all",
         "items": [
-          { "kind": "text_present", "text": "Accounts Overview" },
-          { "kind": "text_absent", "text": "${inputs.accountId}" }
+          {
+            "kind": "text_present",
+            "text": "Accounts Overview"
+          },
+          {
+            "kind": "text_absent",
+            "text": "${inputs.accountId}"
+          }
         ]
       },
       "class": "business_outcome",
@@ -161,13 +247,21 @@
       "when": {
         "kind": "all",
         "items": [
-          { "kind": "text_present", "text": "internal error" },
-          { "kind": "text_absent", "text": "Accounts Overview" }
+          {
+            "kind": "text_present",
+            "text": "internal error"
+          },
+          {
+            "kind": "text_absent",
+            "text": "Accounts Overview"
+          }
         ]
       },
       "class": "recoverable",
       "code": "SESSION_EXPIRED",
-      "recover": { "strategy": "re_login" },
+      "recover": {
+        "strategy": "re_login"
+      },
       "verified": false
     }
   ],
@@ -175,10 +269,21 @@
     "checkpoint": {
       "kind": "all",
       "items": [
-        { "kind": "text_present", "text": "Accounts Overview" },
-        { "kind": "text_present", "text": "${inputs.accountId}" }
+        {
+          "kind": "text_present",
+          "text": "Accounts Overview"
+        },
+        {
+          "kind": "text_present",
+          "text": "${inputs.accountId}"
+        }
       ]
     },
-    "extract": [{ "output": "balance", "from": "s6_read_balance" }]
+    "extract": [
+      {
+        "output": "balance",
+        "from": "s6_read_balance"
+      }
+    ]
   }
 }

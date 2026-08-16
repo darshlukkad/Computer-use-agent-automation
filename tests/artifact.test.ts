@@ -12,6 +12,7 @@ import {
   type Capability,
 } from "../src/artifact/schema.ts";
 import { approve, verifyApproval, artifactDigest, canonicalJson } from "../src/artifact/digest.ts";
+import { classifyDrift } from "../src/result/types.ts";
 
 const FIXTURE = "capabilities/account.lookup_balance.handwritten.json";
 const load = (): Capability => parseCapability(JSON.parse(readFileSync(FIXTURE, "utf8")));
@@ -57,6 +58,40 @@ test("the locator ladder is ordered semantic-first, CSS last", () => {
     assert.ok(step.target.rationale.length > 20,
       `step ${step.id}: every locator must carry its robustness reasoning`);
   }
+});
+
+// --- drift is measured against a baseline, not against rung 1 --------------
+
+test("aspirational upper rungs do not report drift on a healthy run", () => {
+  const a = load();
+  // ParaBank's login fields carry role_name and label rungs that resolve to zero
+  // elements and always will. Naive "drift = deeper than rung 1" would fire on
+  // every run forever, and an alert that always fires gets muted.
+  const username = a.steps.find((s) => s.id === "s2_username")!;
+  assert.equal(username.target!.strategies.length, 3);
+  assert.equal(username.target!.baselineRung, 3);
+  assert.equal(classifyDrift(username.target!.baselineRung, 3), "none");
+});
+
+test("drift is degraded when the ladder falls further than recorded", () => {
+  assert.equal(classifyDrift(1, 2), "degraded");
+  assert.equal(classifyDrift(3, 4), "degraded");
+});
+
+test("drift is improved when the app gains better semantics", () => {
+  // A vendor upgrade that finally adds a <label> lets rung 2 win where rung 3 used
+  // to. Worth surfacing so the baseline can be tightened, not silently ignored.
+  assert.equal(classifyDrift(3, 2), "improved");
+});
+
+test("a step with no target has no drift signal", () => {
+  assert.equal(classifyDrift(1, null), "none");
+});
+
+test("a baseline past the end of its ladder is rejected", () => {
+  const a = clone(load());
+  a.steps[3]!.target!.baselineRung = 5; // ladder has 2 rungs
+  assert.throws(() => parseCapability(a), /exceeds its 2-rung ladder/);
 });
 
 // --- structural lint catches what the type system cannot -------------------
