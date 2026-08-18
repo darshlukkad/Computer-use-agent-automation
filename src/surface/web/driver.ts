@@ -12,7 +12,7 @@ import type { Target } from "../../artifact/schema.ts";
 import {
   type ActRequest, type AxNode, type Observation, type Resolution, type SurfaceDriver,
 } from "../driver.ts";
-import { DIALOG_FN, HARVEST_FN } from "./axtree.ts";
+import { dialogsExpr, harvestExpr } from "./axtree.ts";
 import { countTarget, resolveTarget } from "./resolve.ts";
 
 const MAX_NODES = 120;
@@ -91,12 +91,10 @@ export class WebDriver implements SurfaceDriver {
     for (const frame of page.frames()) {
       const label = frame.name() || (frame === page.mainFrame() ? "" : frame.url());
       try {
-        const harvested = (await frame.evaluate(
-          `(${HARVEST_FN})(${MAX_NODES})`,
-        )) as AxNode[];
+        const harvested = (await frame.evaluate(harvestExpr(MAX_NODES))) as AxNode[];
         for (const n of harvested) nodes.push(label ? { ...n, frame: label } : n);
 
-        const found = (await frame.evaluate(`(${DIALOG_FN})()`)) as string[];
+        const found = (await frame.evaluate(dialogsExpr())) as string[];
         dialogs.push(...found);
 
         chunks.push(await frame.locator("body").innerText({ timeout: 2000 }));
@@ -130,6 +128,17 @@ export class WebDriver implements SurfaceDriver {
 
   async readValue(target: Target): Promise<string> {
     const hit = await resolveTarget(this.p(), target, this.inputs);
+    // For a dropdown, the chosen option's TEXT — matching what an operator sees and
+    // what the observation reports. `inputValue()` would return the value attribute,
+    // so a checkpoint written against the visible label ("SAVINGS") would be compared
+    // with an index ("1") and fail on a step that had worked.
+    const optionText = await hit.locator.evaluate((el) => {
+      if (!(el instanceof HTMLSelectElement)) return null;
+      const chosen = el.options[el.selectedIndex];
+      return chosen ? (chosen.textContent ?? "").replace(/\s+/g, " ").trim() : "";
+    }).catch(() => null);
+
+    if (optionText !== null) return optionText;
     return (await hit.locator.inputValue()).trim();
   }
 

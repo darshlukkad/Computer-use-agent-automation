@@ -13,6 +13,7 @@
 import type { Frame, Locator, Page } from "playwright";
 import type { LocatorStrategy, Target } from "../../artifact/schema.ts";
 import { TargetAmbiguous, TargetMissing, type Resolution } from "../driver.ts";
+import { nearbyExpr } from "./axtree.ts";
 
 /** Interpolate `${inputs.foo}` against the run's parameters. */
 export function interpolate(text: string, inputs: Record<string, string>): string {
@@ -29,16 +30,6 @@ function escapeRe(s: string): string {
 function nameRe(name: string): RegExp {
   return new RegExp(`^\\s*${escapeRe(name)}\\s*$`, "i");
 }
-
-/**
- * What a nearby-text anchor could plausibly be labelling.
- *
- * `td` is included because on legacy screens the thing beside a caption is frequently
- * a table cell rather than a form control — `<td>Balance:</td><td>$1,100.00</td>` has
- * no input, no label and no header row, and the cell is what a human reads.
- */
-const CONTROL =
-  "self::input or self::select or self::textarea or self::button or self::a or self::td or self::p";
 
 function locateIn(frame: Frame, s: LocatorStrategy, inputs: Record<string, string>): Locator {
   switch (s.kind) {
@@ -98,69 +89,6 @@ function locateIn(frame: Frame, s: LocatorStrategy, inputs: Record<string, strin
  * locator engine. It is never stored in an artifact; the artifact keeps the semantic
  * instruction, and this is how that instruction is carried out.
  */
-const NEARBY_FN = `function (caption, axis) {
-  function visible(el) {
-    if (!el) return false;
-    var r = el.getBoundingClientRect();
-    if (r.width === 0 && r.height === 0) return false;
-    var s = window.getComputedStyle(el);
-    return s.visibility !== "hidden" && s.display !== "none";
-  }
-  function isControl(el) {
-    var t = el.tagName;
-    /* P is included so a value stated as a sentence can be read; it is last in
-       document order terms only, and a paragraph is never the target of a click. */
-    return t === "INPUT" || t === "SELECT" || t === "TEXTAREA" || t === "BUTTON" ||
-           t === "A" || t === "TD" || t === "P";
-  }
-  function uniquePath(el) {
-    var parts = [];
-    while (el && el.nodeType === 1 && el.tagName !== "HTML") {
-      var tag = el.tagName.toLowerCase();
-      var parent = el.parentElement;
-      if (!parent) { parts.unshift(tag); break; }
-      var same = 0, index = 0;
-      for (var i = 0; i < parent.children.length; i++) {
-        var sib = parent.children[i];
-        if (sib.tagName === el.tagName) { same++; if (sib === el) index = same; }
-      }
-      parts.unshift(same > 1 ? tag + ":nth-of-type(" + index + ")" : tag);
-      el = parent;
-    }
-    return parts.join(" > ");
-  }
-
-  var wanted = String(caption).replace(/\\s+/g, " ").trim();
-  var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
-  var anchors = [], node;
-  while ((node = walker.nextNode())) {
-    if ((node.textContent || "").replace(/\\s+/g, " ").trim() !== wanted) continue;
-    /* A caption inside a hidden template is not a caption. */
-    if (!visible(node.parentElement)) continue;
-    anchors.push(node);
-  }
-
-  var all = Array.prototype.slice.call(document.querySelectorAll("*"));
-  var hits = [];
-  for (var a = 0; a < anchors.length; a++) {
-    var anchor = anchors[a];
-    var ordered = axis === "preceding" ? all.slice().reverse() : all;
-    for (var i = 0; i < ordered.length; i++) {
-      var el = ordered[i];
-      var pos = anchor.compareDocumentPosition(el);
-      var after = (pos & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
-      var contains = (pos & Node.DOCUMENT_POSITION_CONTAINED_BY) !== 0;
-      var wantedSide = axis === "preceding" ? !after : after;
-      if (!wantedSide || contains) continue;
-      if (!isControl(el) || !visible(el)) continue;
-      hits.push(uniquePath(el));
-      break;
-    }
-  }
-  /* Distinct captions may legitimately lead to the same control. */
-  return hits.filter(function (p, i) { return hits.indexOf(p) === i; });
-}`;
-
 async function resolveNearbyText(
   frame: Frame,
   s: Extract<LocatorStrategy, { kind: "nearby_text" }>,
@@ -168,16 +96,11 @@ async function resolveNearbyText(
 ): Promise<Locator[]> {
   const axis = s.direction === "above" || s.direction === "left" ? "preceding" : "following";
   const paths = (await frame.evaluate(
-    `(${NEARBY_FN})(${JSON.stringify(interpolate(s.text, inputs))}, ${JSON.stringify(axis)})`,
+    nearbyExpr(interpolate(s.text, inputs), axis),
   )) as string[];
   return paths.map((p) => frame.locator(p));
 }
 
-function xpathLiteral(s: string): string {
-  if (!s.includes("'")) return `'${s}'`;
-  if (!s.includes('"')) return `"${s}"`;
-  return `concat('${s.split("'").join(`', "'", '`)}')`;
-}
 
 /**
  * table_cell needs two lookups the locator engine cannot express in one selector:

@@ -269,6 +269,44 @@ export async function discover(opts: DiscoverOptions): Promise<DiscoveryRun> {
             continue;
           }
           const value = await driver.readText(ladder);
+
+          // A control cannot be addressed by the value being read out of it. The
+          // confirmation link on this app is named after the account number it has
+          // just created, so a rung built from that name looks for the previous run's
+          // number and finds nothing.
+          //
+          // Such a rung is dropped rather than kept, because keeping it is not merely
+          // useless: it resolved during recording, so it would set the baseline, and
+          // every later run would fall past it to a caption rung and be reported as
+          // degraded drift forever — the exact false positive baselineRung exists to
+          // prevent.
+          const durable = withoutSelfReference(ladder, value);
+          if (!durable) {
+            entry.outcome = "blocked";
+            entry.detail = `identified the control only by the value being read (${JSON.stringify(value)})`;
+            trace.push(entry);
+            log("self_referential_read", { turn, name });
+            history.push({
+              role: "user",
+              text: renderResult(
+                `You identified that control by the value you are reading from it. On a later ` +
+                `run that value will be different, so the locator would find nothing. Identify ` +
+                `it by its caption (nearbyText) or its column and row instead, and read again.`,
+                observation,
+              ),
+            });
+            continue;
+          }
+
+          // Re-measure against the ladder we are actually keeping, so the baseline
+          // describes how this control will be found in production.
+          const remeasured = await driver.resolve(durable);
+          entry.target = {
+            ladder: { ...durable, baselineRung: remeasured.rung },
+            resolvedRung: remeasured.rung,
+          };
+          resolvedRung = remeasured.rung;
+
           outputs[name] = value;
           entry.extracted = { name, value };
           break;
@@ -315,26 +353,73 @@ export async function discover(opts: DiscoverOptions): Promise<DiscoveryRun> {
   return finish("exhausted", `reached the ${maxTurns}-turn limit`);
 }
 
+/** Everything about a screen that an action could plausibly change. */
+function fingerprint(o: Observation): string {
+  return `${o.url} ${o.text} ${JSON.stringify(o.nodes)}`;
+}
+
 /**
- * Re-observe until the screen differs from `previous`, or a short budget runs out.
+ * Re-observe until the screen has changed AND then gone quiet.
  *
- * Not every action changes the page — filling a field usually does not — so a timeout
- * here is a normal outcome, not a failure.
+ * Waiting only for "different" is not enough, and the account-opening flow is why:
+ * this app hides the form first and renders the confirmation a moment later, so the
+ * first difference is an intermediate state with the form gone and the result not yet
+ * there. The model was handed that, saw no confirmation, and correctly concluded the
+ * value it needed was not on screen.
+ *
+ * Quiet means two consecutive identical observations. The fingerprint covers the node
+ * list as well as the text, so a fill — which changes an input's value but not the
+ * page's prose — registers as a change immediately and settles on the next poll,
+ * instead of burning the whole budget on every keystroke.
+ *
+ * A budget expiry is a normal outcome: some actions genuinely change nothing.
  */
 async function settle(
   driver: SurfaceDriver,
   previous: Observation,
-  budgetMs = 4000,
+  budgetMs = 5000,
   pollMs = 250,
 ): Promise<Observation> {
   const deadline = Date.now() + budgetMs;
+  const before = fingerprint(previous);
+
   let latest = await driver.observe();
+  let seenChange = fingerprint(latest) !== before;
+
   while (Date.now() < deadline) {
-    if (latest.text !== previous.text || latest.url !== previous.url) return latest;
     await new Promise((r) => setTimeout(r, pollMs));
-    latest = await driver.observe();
+    const next = await driver.observe();
+    const quiet = fingerprint(next) === fingerprint(latest);
+    latest = next;
+    if (!quiet) { seenChange = true; continue; }
+    if (seenChange) return latest;
   }
   return latest;
+}
+
+/**
+ * The ladder with any rung built from the extracted value removed.
+ *
+ * Returns null when nothing durable is left, which means the control was identified
+ * only by its own content and the model has to find another anchor.
+ *
+ * `table_cell` is exempt: its row match legitimately names the record being looked up,
+ * which is a parameter rather than the value read out of the cell.
+ */
+function withoutSelfReference(ladder: Target, value: string): Target | null {
+  const needle = value.trim();
+  if (needle.length < 2) return ladder;
+
+  const durable = ladder.strategies.filter((s) => {
+    switch (s.kind) {
+      case "role_name": return s.name.trim() !== needle;
+      case "label":
+      case "nearby_text": return s.text.trim() !== needle;
+      default: return true;
+    }
+  });
+  if (!durable.length) return null;
+  return { ...ladder, strategies: durable };
 }
 
 function pad(n: number): string {
