@@ -1,0 +1,307 @@
+{
+  "apiVersion": "cua.capability/v1",
+  "kind": "Capability",
+  "metadata": {
+    "id": "account.lookup_balance",
+    "version": "1.0.0",
+    "status": "approved",
+    "title": "Look up an account's current balance",
+    "description": "Signs in to the servicing console, opens the accounts overview, and returns the current balance for the given account number.",
+    "digest": "94cc8918b6d937ccb9f9ebc81db3fe3347d84ace858b8edae7d6135135898f4d",
+    "approval": {
+      "digest": "94cc8918b6d937ccb9f9ebc81db3fe3347d84ace858b8edae7d6135135898f4d",
+      "approverId": "darsh@band24.com",
+      "approvedAt": "2026-08-18T18:02:18.269Z"
+    }
+  },
+  "provenance": {
+    "discoveryRunId": "handwritten-schema-gate",
+    "model": "none",
+    "createdAt": "2026-08-16T00:00:00.000Z",
+    "runnerVersion": "0.1.0",
+    "liveLlm": false
+  },
+  "compatibility": {
+    "vendor": "parasoft",
+    "product": "parabank",
+    "versionRange": ">=5.0.0 <6.0.0"
+  },
+  "entry": {
+    "originAllowlist": [
+      "http://localhost:8080",
+      "http://127.0.0.1:8080"
+    ],
+    "path": "/parabank/index.htm"
+  },
+  "signature": {
+    "inputs": {
+      "accountId": {
+        "type": "string",
+        "required": true,
+        "pii": "identifier",
+        "pattern": "^[0-9]{5}$",
+        "description": "The account number to look up, as shown in the accounts overview."
+      }
+    },
+    "outputs": {
+      "balance": {
+        "type": "money",
+        "required": true,
+        "pii": "none",
+        "description": "Current balance of the account."
+      }
+    }
+  },
+  "preconditions": [
+    {
+      "kind": "text_present",
+      "text": "Customer Login"
+    }
+  ],
+  "steps": [
+    {
+      "id": "s1_open",
+      "action": "navigate",
+      "effect": "observation",
+      "risk": "safe",
+      "postcondition": {
+        "kind": "text_present",
+        "text": "Customer Login"
+      },
+      "timeoutMs": 15000,
+      "maxAttempts": 1
+    },
+    {
+      "id": "s2_username",
+      "action": "fill",
+      "target": {
+        "strategies": [
+          {
+            "kind": "role_name",
+            "role": "textbox",
+            "name": "Username"
+          },
+          {
+            "kind": "label",
+            "text": "Username"
+          },
+          {
+            "kind": "nearby_text",
+            "text": "Username",
+            "direction": "below"
+          }
+        ],
+        "baselineRung": 3,
+        "rationale": "The input carries no id, no <label> and no aria-label, so rungs 1 and 2 resolve to zero elements on this app. The bold caption 'Username' immediately above the field is the only stable anchor, and it is what a human operator uses. Rungs 1-2 are retained because a future version may add proper labelling."
+      },
+      "value": {
+        "kind": "secret",
+        "ref": "operator_username"
+      },
+      "effect": "idempotent_write",
+      "risk": "safe",
+      "postcondition": {
+        "kind": "value_non_empty",
+        "target": {
+          "strategies": [
+            {
+              "kind": "nearby_text",
+              "text": "Username",
+              "direction": "below"
+            }
+          ],
+          "baselineRung": 1,
+          "rationale": "Same control as the fill; asserts it took a value without recording the credential."
+        }
+      },
+      "timeoutMs": 15000,
+      "maxAttempts": 1
+    },
+    {
+      "id": "s3_password",
+      "action": "fill",
+      "target": {
+        "strategies": [
+          {
+            "kind": "role_name",
+            "role": "textbox",
+            "name": "Password"
+          },
+          {
+            "kind": "label",
+            "text": "Password"
+          },
+          {
+            "kind": "nearby_text",
+            "text": "Password",
+            "direction": "below"
+          }
+        ],
+        "baselineRung": 3,
+        "rationale": "Same structure as the username field — the caption is a sibling <b>, not a label."
+      },
+      "value": {
+        "kind": "secret",
+        "ref": "operator_password"
+      },
+      "effect": "idempotent_write",
+      "risk": "safe",
+      "postcondition": {
+        "kind": "value_non_empty",
+        "target": {
+          "strategies": [
+            {
+              "kind": "nearby_text",
+              "text": "Password",
+              "direction": "below"
+            }
+          ],
+          "baselineRung": 1,
+          "rationale": "Proves the field was filled without writing the secret into the artifact."
+        }
+      },
+      "timeoutMs": 15000,
+      "maxAttempts": 1
+    },
+    {
+      "id": "s4_signin",
+      "action": "click",
+      "target": {
+        "strategies": [
+          {
+            "kind": "role_name",
+            "role": "button",
+            "name": "Log In"
+          },
+          {
+            "kind": "css",
+            "selector": "input[value='Log In']"
+          }
+        ],
+        "baselineRung": 1,
+        "rationale": "The submit control is an <input type=submit>, whose accessible name derives from its value attribute, so rung 1 is expected to hold here even though the text fields have no names. CSS is retained as a last resort and firing it is recorded as drift."
+      },
+      "effect": "idempotent_write",
+      "risk": "safe",
+      "postcondition": {
+        "kind": "text_present",
+        "text": "Accounts Overview"
+      },
+      "timeoutMs": 20000,
+      "maxAttempts": 1
+    },
+    {
+      "id": "s5_await_rows",
+      "action": "wait",
+      "effect": "observation",
+      "risk": "safe",
+      "precondition": {
+        "kind": "text_present",
+        "text": "Accounts Overview"
+      },
+      "postcondition": {
+        "kind": "count_at_least",
+        "target": {
+          "strategies": [
+            {
+              "kind": "css",
+              "selector": "#accountTable tbody tr"
+            }
+          ],
+          "baselineRung": 1,
+          "rationale": "The accounts table body is populated by script; the served HTML ships an empty <tbody>. We wait on rows existing rather than on a duration. No semantic locator can express 'the rows of this grid' — accessibility exposes cells and headers, not a container — so CSS is the deliberate first choice here, not a fallback. Baseline 1 records that: this resolving at rung 1 is healthy, and there is no lower rung it could degrade from."
+        },
+        "n": 1
+      },
+      "timeoutMs": 20000,
+      "maxAttempts": 1
+    },
+    {
+      "id": "s6_read_balance",
+      "action": "read",
+      "target": {
+        "strategies": [
+          {
+            "kind": "table_cell",
+            "header": "Balance*",
+            "rowMatch": "${inputs.accountId}"
+          }
+        ],
+        "baselineRung": 1,
+        "rationale": "The column is located by its visible header text and the row by the account number, so neither column order nor row order matters. This is how an operator reads the same value."
+      },
+      "effect": "observation",
+      "risk": "safe",
+      "timeoutMs": 15000,
+      "maxAttempts": 3,
+      "extractTo": "balance"
+    }
+  ],
+  "exceptions": [
+    {
+      "id": "e_account_not_found",
+      "when": {
+        "kind": "all",
+        "items": [
+          {
+            "kind": "text_present",
+            "text": "Accounts Overview"
+          },
+          {
+            "kind": "text_absent",
+            "text": "${inputs.accountId}"
+          }
+        ]
+      },
+      "class": "business_outcome",
+      "code": "ACCOUNT_NOT_FOUND",
+      "answer": "No account ${inputs.accountId} is visible to this operator, so no balance could be read.",
+      "verified": false
+    },
+    {
+      "id": "e_session_expired",
+      "when": {
+        "kind": "all",
+        "items": [
+          {
+            "kind": "text_present",
+            "text": "internal error"
+          },
+          {
+            "kind": "text_absent",
+            "text": "Accounts Overview"
+          }
+        ]
+      },
+      "class": "recoverable",
+      "code": "SESSION_EXPIRED",
+      "recover": {
+        "strategy": "re_login"
+      },
+      "answer": "The servicing session expired before the balance could be read.",
+      "verified": false
+    }
+  ],
+  "success": {
+    "checkpoint": {
+      "kind": "all",
+      "items": [
+        {
+          "kind": "text_present",
+          "text": "Accounts Overview"
+        },
+        {
+          "kind": "text_present",
+          "text": "${inputs.accountId}"
+        }
+      ]
+    },
+    "extract": [
+      {
+        "output": "balance",
+        "from": "s6_read_balance"
+      }
+    ],
+    "answer": "The current balance for account ${inputs.accountId} is ${outputs.balance}."
+  }
+}

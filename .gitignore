@@ -21,3 +21,6 @@ __pycache__/
 # --- local run artifacts
 *.log
 .DS_Store
+
+# replay evidence from local dev runs; the curated set is committed at step 8
+evidence/replay-*

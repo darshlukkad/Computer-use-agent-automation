@@ -1,7 +1,8 @@
-# REPO_ANALYSIS.md — Competitive teardown of four peer submissions
+# REPO_ANALYSIS.md — Competitive teardown of five peer submissions
 
-Four public repos answering the same interface.ai take-home ([PROBLEM.md](PROBLEM.md)).
-All cloned and read at source level on 2026-08-15. All four were pushed 2026-08-12 → 08-13.
+Five public repos answering the same interface.ai take-home ([PROBLEM.md](PROBLEM.md)).
+All cloned and read at source level: four on 2026-08-15, the fifth (`yash161`) on 2026-08-18.
+All were pushed 2026-08-12 → 08-13.
 
 | # | Repo | Stack | Impl. LOC | Tests | Commits | Verdict |
 |---|---|---|---|---|---|---|
@@ -9,8 +10,10 @@ All cloned and read at source level on 2026-08-15. All four were pushed 2026-08-
 | 2 | `ujjwalredd/interface-ai-computer-use` | TS / Node / Playwright | 1,204 | 22 cases, 1 file | 6 | **Strongest engineering rigor.** Best safety + evidence integrity. Fatal generality flaw. |
 | 3 | `yitingzhang1113/interfaceai-...` | Python / FastAPI / Playwright | 2,156 | 21 cases | 2 | **Best judgment & communication.** Best HITL semantics. Thinnest safety. |
 | 4 | `Tmwakalasya/assesmentsoln` | Python (scaffold) | **8** | 1 trivial | 4 | **Not a submission.** Aspirational report, zero implementation. |
+| 5 | `yash161/computer-use-automation` | TS / Node / Playwright / Gemini | 3,098 | 19, **all unit** | 6 | **Best escalation model in the field.** Critical locator bug; ladder unexercised. |
 
-None of the four is complete. Section 8 is where the gap is.
+None of the five is complete. Section 8 is where the gap is — and §7 has been corrected
+since `yash161` closes two of the gaps I originally attributed to the whole field.
 
 ---
 
@@ -220,6 +223,124 @@ brief explicitly does not reward.
 
 ---
 
+## 4b. `yash161/computer-use-automation`
+
+**Framing.** The most product-shaped of the five. Externalised policy config, an Express
+operator console, a per-step escalation declaration, and two capabilities — one of which is
+genuinely irreversible. Gemini 2.5 Flash for discovery.
+
+### The best idea in the entire field: verify the handback
+
+Every other repo treats "the operator clicked Resume" as proof the operator did the work.
+This one does not:
+
+```ts
+const interventionId = await onEscalate(step.id, pErr.message, shot);
+// onEscalate resolves only after the operator signals resume. The human
+// may have completed this step manually — verify against the step's own
+// checkpoint before continuing, rather than trusting the handback blindly.
+if (step.checkpoint) {
+  const cpResult = await evaluateCheckpoint(page, step.checkpoint);
+  if (cpResult.passed && !cpResult.outcome) { /* continue */ }
+}
+return { status: "escalated", ... };   // otherwise STAY escalated
+```
+
+And there is committed evidence of **both** outcomes:
+
+| Evidence dir | What it proves |
+|---|---|
+| `evidence/escalation-run/` | operator did the work → checkpoint passed → run resumed and produced `newAccountNumber: CU-733719` |
+| `evidence/escalation-unverified-handback/` | operator clicked Resume **without doing the work** → checkpoint failed → run refused to continue |
+
+That second directory is the single most impressive artifact across all five repos. It tests a
+failure mode nobody else considers — an operator who hands control back having done nothing —
+which is a real 2am occurrence, and the naive design silently proceeds into a wrong state.
+
+### Also genuinely good
+
+- **Escalation state machine with guarded transitions.** Five states, and illegal transitions
+  *throw* rather than being tolerated: `operatorTakesControl()` refuses unless the state is
+  `PAUSED_AWAITING_HUMAN`. Keeps a `history[]` of every transition with actor and timestamp —
+  an audit trail of who held control when. Stronger than anything else in the field.
+- **`isAutomationAllowed()` checked before every action**, so ceding control is enforced rather
+  than promised.
+- **Policy externalised to `config/policy.json`** — origins, action types, risk rules,
+  irreversible patterns. §3.4 asks for a *configurable* allowlist and a JSON file is more
+  literally that than a constant in code.
+- **Per-step `onError: "fail" | "escalate" | "skip"`.** Escalation policy declared per step in
+  the artifact rather than hardcoded in the engine. Nobody else has this.
+- **Steps are a discriminated union on `action`**, so a `type` step structurally requires a
+  `value` and a `read` step requires an `outputKey`. Stricter than a single step type with
+  optional fields — a genuine modelling advantage.
+- **`success.checkpointOfStep`** names an existing step's checkpoint instead of duplicating the
+  condition, so the two cannot drift apart.
+- **The discovery log is honest about being messy**: 13 `model_action` events alongside 5
+  `act_error`, 1 `agent_error` and 1 `stuck`. A real run that struggled, not a tidied one.
+
+### The critical bug
+
+**Resolution verifies one query and then acts on a different, looser one.** `resolveLocator`
+returns a *string*, which the act functions parse back:
+
+```ts
+// resolve — verified unique, name included:
+page.getByRole("button", { name: "Log In" })   // count must be 1
+  → returns the string `[role="button"]`       // the NAME is thrown away
+
+// act — reconstructed from that string:
+page.getByRole("button").first().click()       // ANY button, first one wins
+```
+
+So on any page with more than one button, uniqueness is checked against `role+name` and the
+click lands on whichever button happens to be first in the DOM. Same for `type` and `read`.
+The `bbox` and CSS paths funnel through `.first()` too, and the CSS rung never checks
+uniqueness at all — `count > 0` is enough.
+
+This is the same class of defect I hit with `nearby_text` (a locator that resolves to exactly
+one element and is confidently wrong), except mine was one strategy and this is systematic
+across the most-used rung. It survives because **there is not a single integration test** —
+all 19 tests are unit tests over the redactor, schema and policy; nothing drives a browser.
+
+### Other shortcomings
+
+1. **`strategyIndex` is computed, commented as "for telemetry (drift detection)", and never
+   read anywhere.** `grep` finds zero uses outside `locator.ts`. Same unfulfilled drift promise
+   as the other four — dead code standing in for a mechanism.
+2. **Checkpoints are optional on every step**, and an empty checkpoint returns
+   `passed: observed.length === 0` — i.e. trivially true. "I clicked, therefore it worked" is
+   permitted by the schema.
+3. **Multiple fields on one checkpoint are OR, not AND.** `evaluateSingleCheckpoint` returns on
+   the first condition that matches, so `{urlContains, textVisible}` passes if *either* holds —
+   almost certainly not what an author writing two conditions intends. Only `anyOf` (also OR)
+   exists, so conjunction is inexpressible. A composite like "on the overview page **and** the
+   account is listed" cannot be written.
+4. **No approval integrity.** Both capabilities ship `status: "approved"` with
+   `reviewedBy: "yash"`, and nothing binds that to content — the field is a flippable string.
+5. **`tenant` lives inside the artifact** (`tenant: z.string().nullable()`), which ties a
+   recording to an institution rather than to a vendor product. No overlay concept, so
+   cross-tenant reuse is neither built nor designed.
+6. **No compatibility or version range**, so replay cannot refuse to run against a wrong app
+   version. Capability version is an integer, losing the minor/patch distinction between a
+   structural change and a locator tweak.
+7. **No `effect` separate from `risk`**, so retry-safety and approval-need are the same axis.
+8. **The mock was authored with 11 `aria-label` attributes.** Rung 1 therefore wins on
+   essentially every control, so rungs 2–4 are never exercised and the `bbox` rung could not
+   fire even in principle. The clearest instance in the field of a target shaped to suit the
+   automation.
+9. **The irreversible capability was hand-written, not discovered** —
+   `open-sub-account.v1.json` carries `recordedBy: "manual:yash"`. The impressive escalation
+   demo runs on a hand-authored artifact; discovery produced only the read-only lookup. Honest
+   provenance, but it means the discovery loop was never exercised on the hard flow.
+10. **Committed evidence leaks the author's local paths** —
+    `/Users/yashshah/Desktop/⚙️  Projects/interface/evidence/...` appears in every result file.
+11. `getByText(..., { exact: false })` throughout, so `textVisible: "100"` matches `"1100.00"`.
+
+### The write-up
+207 lines, well within the brief's page budget, and clear. Notably honest about the mock.
+
+---
+
 ## 5. Cross-cutting comparison
 
 ### Artifact schema
@@ -260,17 +381,21 @@ answer, and it's the least visible of the three.
 
 ### Human-in-the-loop
 
-| | hands | ujjwalredd | yitingzhang |
-|---|---|---|---|
-| Control states | `agent / paused / human` | `CREATED→RUNNING→WAITING_FOR_OPERATOR→OPERATOR_CONTROL→RESUMING` | `AGENT / REPLAY / HUMAN` + 6 statuses |
-| Enforcement | `assertAgent()` throws | state machine + server broker | persisted `session_state.json` |
-| Same live session | yes (same Playwright page) | yes (same context/page/iframe/cookies) | yes (headed, same page) |
-| Auth on control transfer | none | **ephemeral tokens + `timingSafeEqual`** | none (file signal) |
-| Human actions captured | init-script click listener | metadata-only click/change/submit/nav | before/after observation diff + action log |
-| Resume semantics | resume in place | recheck current postcondition | **`resync` → first unmet checkpoint** |
-| Operator surface | **React console w/ live viewport** | localhost CLI + headed window | minimal FastAPI page |
+| | hands | ujjwalredd | yitingzhang | **yash161** |
+|---|---|---|---|---|
+| Control states | `agent / paused / human` | 6-state machine | `AGENT / REPLAY / HUMAN` + 6 statuses | 5-state, **illegal transitions throw** |
+| Enforcement | `assertAgent()` throws | state machine + server broker | persisted `session_state.json` | `isAutomationAllowed()` before every action |
+| Same live session | yes | yes (context/page/iframe/cookies) | yes (headed) | yes (Express console over same page) |
+| Auth on control transfer | none | **ephemeral tokens + `timingSafeEqual`** | none (file signal) | none |
+| Human actions captured | init-script click listener | metadata-only click/change/submit/nav | before/after diff + action log | **transition history with actor + timestamp** |
+| Resume semantics | resume in place | recheck current postcondition | **`resync` → first unmet checkpoint** | **verify the step's checkpoint or stay escalated** |
+| Empty-handback guard | no | no | no | **yes, with evidence of both outcomes** |
+| Operator surface | **React console w/ live viewport** | localhost CLI + headed window | minimal FastAPI page | Express console |
 
-The ideal is a composite: **yitingzhang's resync + ujjwalredd's token auth + hands' console.**
+The ideal is a composite: **yash161's verified handback and transition history + yitingzhang's
+resync + ujjwalredd's token auth + hands' console.** `yash161`'s guard and `yitingzhang`'s resync
+are complementary rather than competing — verify that *this* step is now satisfied, and if the
+human went further, resume at the first step that is not.
 
 ### Safety
 
@@ -314,7 +439,10 @@ not a differentiator:
 
 ---
 
-## 7. Where every one of them is weak — the actual opportunity
+## 7. Where they are weak — the actual opportunity
+
+*Revised 2026-08-18 after the fifth repo. `yash161` closes the irreversible-flow gap and
+sets the bar on escalation, so two claims below are narrower than they were.*
 
 1. **Discovery is theatre.** All three heavily constrain the model — hands hardcodes field
    names in the prompt and then repairs the output; every successful discovery evidence trace
@@ -340,14 +468,36 @@ not a differentiator:
 
 5. **Recovery is invisible in the result contract** (see §5 above).
 
-6. **Nobody handles an irreversible flow end to end.** hands has `member.open_sub_account` and
-   an approval command; the evidence shows only lookups. The brief's second example goal —
-   *"open a new sub-account and reach the confirmation screen"* — is the one that makes the
-   risky-action model matter, and no one demonstrates it.
+6. **Only one of the five handles an irreversible flow end to end** — corrected after reading
+   `yash161`, who does. hands has `member.open_sub_account` and an approval command but shows
+   only lookups in evidence; ujjwalredd and yitingzhang are read-only throughout. `yash161`
+   escalates for operator approval on the confirm click, verifies the handback, and produces
+   `newAccountNumber: CU-733719`. Caveat: that artifact was hand-written
+   (`recordedBy: "manual:yash"`), so the discovery loop never drove the hard flow.
+
+7. **Nobody exercises their own locator ladder.** This is the deepest shared weakness and it
+   follows from all five building their own target. `yash161` is the clearest case — 11
+   `aria-label` attributes in their mock, so rung 1 wins everywhere and the lower rungs,
+   including a coordinate `bbox` rung, can never fire. A ladder whose fallbacks are never
+   reached is untested code presented as a robustness strategy.
 
 ---
 
 ## 8. Recommendations for our build
+
+**Adopt from `yash161` (the fifth repo sets the bar on escalation):**
+- **Verify the handback.** After an operator signals resume, re-evaluate the step's checkpoint
+  and stay escalated if it does not hold. Ship evidence of both outcomes, including the
+  operator-did-nothing case. This is the strongest single idea in the field.
+- **Guarded state transitions that throw**, plus a `history[]` of every transition with actor
+  and timestamp — an audit trail of who held control when.
+- **Policy externalised to a JSON config**, since §3.4 asks for a *configurable* allowlist.
+- **Per-step `onError: fail | escalate | skip`**, so escalation policy is declared in the
+  artifact rather than hardcoded in the engine.
+- **Steps as a discriminated union on `action`**, so a `type` step structurally requires a value
+  instead of relying on lint.
+- **`success.checkpointOfStep`** — name an existing step's checkpoint rather than duplicating
+  the condition, so the two cannot drift apart.
 
 **Adopt (proven by the field, cheap to match):**
 - hands' artifact shape — `apiVersion`/`kind`/`metadata`/`signature`/`steps`/`exceptions`/
