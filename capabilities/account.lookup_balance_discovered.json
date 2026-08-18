@@ -5,19 +5,19 @@
     "id": "account.lookup_balance_discovered",
     "version": "1.0.0",
     "status": "approved",
-    "title": "Look up an account's current balance",
-    "description": "Signs in to the servicing console and reads the current balance for the given account from the accounts overview.",
-    "digest": "12ee030e6f28a98785b1426fad005c46d1335c55943c921f42e6f080fe8826ae",
+    "title": "look up account {{account_number}} and read its current balance",
+    "description": "Discovered from a live LLM run against ParaBank, from the goal \"look up account 13344 and read its current balance\" with no contract supplied. Signs in and reads the balance from the accounts overview.",
+    "digest": "80a1ed4ffee4329421817b75962b922ce5a42580141970d9742cdace71e0658a",
     "approval": {
-      "digest": "12ee030e6f28a98785b1426fad005c46d1335c55943c921f42e6f080fe8826ae",
+      "digest": "80a1ed4ffee4329421817b75962b922ce5a42580141970d9742cdace71e0658a",
       "approverId": "darsh@band24.com",
-      "approvedAt": "2026-08-18T20:07:59.819Z"
+      "approvedAt": "2026-08-18T20:14:49.009Z"
     }
   },
   "provenance": {
-    "discoveryRunId": "evidence/discover-2026-08-18T19-57-50-119Z",
+    "discoveryRunId": "evidence/discover-2026-08-18T20-13-59-707Z",
     "model": "openai:gpt-5.2",
-    "createdAt": "2026-08-18T19:58:05.648Z",
+    "createdAt": "2026-08-18T20:14:11.407Z",
     "runnerVersion": "0.1.0",
     "liveLlm": true
   },
@@ -34,7 +34,7 @@
   },
   "signature": {
     "inputs": {
-      "accountId": {
+      "account_number": {
         "type": "string",
         "required": true,
         "pii": "identifier",
@@ -42,7 +42,7 @@
       }
     },
     "outputs": {
-      "balance": {
+      "current_balance": {
         "type": "money",
         "required": true,
         "pii": "none",
@@ -194,7 +194,7 @@
           {
             "kind": "table_cell",
             "header": "Balance*",
-            "rowMatch": "${inputs.accountId}"
+            "rowMatch": "${inputs.account_number}"
           }
         ],
         "baselineRung": 1,
@@ -204,7 +204,7 @@
       "risk": "safe",
       "timeoutMs": 15000,
       "maxAttempts": 3,
-      "extractTo": "balance",
+      "extractTo": "current_balance",
       "onError": "fail"
     }
   ],
@@ -219,16 +219,16 @@
         },
         {
           "kind": "text_present",
-          "text": "${inputs.accountId}"
+          "text": "${inputs.account_number}"
         }
       ]
     },
     "extract": [
       {
-        "output": "balance",
+        "output": "current_balance",
         "from": "s5_read_balance"
       }
     ],
-    "answer": "The current balance for account ${inputs.accountId} is ${outputs.balance}."
+    "answer": "The current balance for account ${inputs.account_number} is ${outputs.current_balance}."
   }
 }

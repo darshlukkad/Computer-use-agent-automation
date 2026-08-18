@@ -9,6 +9,7 @@ import { loadCapability, listCapabilities, saveCapability, CAPABILITY_DIR } from
 import { discover } from "./discovery/loop.ts";
 import { compile } from "./discovery/compile.ts";
 import { modelFromEnv } from "./discovery/model.ts";
+import { planGoal } from "./discovery/plan.ts";
 import { approve } from "./artifact/digest.ts";
 import { WebDriver } from "./surface/web/driver.ts";
 import { replay } from "./replay/engine.ts";
@@ -49,9 +50,9 @@ function repeated(name: string): string[] {
 }
 
 const USAGE = `
-  discover --goal '<text>' --id <capability> --entry <url>
-           --output <name>:<string|money|number|boolean> ...
-           [--param k=v ...] [--credential <role> ...] [--headed] [--slow <ms>]
+  discover --goal '<natural language>' --id <capability> --entry <url>
+           [--param k=v ...] [--output <name>:<type> ...]   (inferred if omitted)
+           [--credential <role> ...] [--headed] [--slow <ms>]
            [--max-turns <n>] [--vendor <v>] [--product <p>]
   replay   --id <capability> --input '<json>' [--headed] [--slow <ms>] [--video <dir>]
            [--tenant <name>] [--unapproved]
@@ -91,17 +92,8 @@ async function main(): Promise<number> {
     const goal = required("goal");
     const id = required("id");
     const entry = required("entry");
-    const params = pairs("param");
-    // The goal the model reads has parameter values substituted in, so it never sees
-    // a placeholder — and the compiler still knows which literal came from where.
-    const renderedGoal = Object.entries(params).reduce(
-      (g, [k, v]) => g.replaceAll(`{{${k}}}`, v),
-      goal,
-    );
 
-    // The output contract is the caller's, never the model's. Compilation checks the
-    // run against it, so a model claiming success it did not achieve cannot ship.
-    const requiredOutputs = repeated("output").map((spec) => {
+    const explicitOutputs = repeated("output").map((spec) => {
       const [name, type = "string"] = spec.split(":");
       if (!name) throw new Error(`--output needs <name>:<type>, got ${JSON.stringify(spec)}`);
       if (!["string", "money", "number", "boolean"].includes(type)) {
@@ -109,13 +101,49 @@ async function main(): Promise<number> {
       }
       return { name, type: type as "string" | "money" | "number" | "boolean" };
     });
+    const explicitParams = pairs("param");
 
     const model = await modelFromEnv();
+
+    // §3.1 asks for a natural-language goal, and the brief's examples put the value
+    // inline: "look up member 12345 and read their savings balance". So when the
+    // contract is not spelled out, read it off the goal rather than demanding the
+    // operator pre-decompose their own request. Explicit flags always win, and the
+    // proposal is printed so it can be seen and disagreed with.
+    let params = explicitParams;
+    let requiredOutputs = explicitOutputs;
+    let goalTemplate = goal;
+
+    if (!Object.keys(explicitParams).length || !explicitOutputs.length) {
+      const plan = await planGoal(model, goal);
+      if (!Object.keys(explicitParams).length) { params = plan.params; goalTemplate = plan.template; }
+      if (!explicitOutputs.length) requiredOutputs = plan.outputs;
+
+      console.log("read from the goal:");
+      const shown = Object.entries(params);
+      console.log(`  parameters ${shown.length ? shown.map(([k, v]) => `${k}=${v}`).join(", ") : "(none)"}`);
+      console.log(`  outputs    ${requiredOutputs.length ? requiredOutputs.map((o) => `${o.name}:${o.type}`).join(", ") : "(none)"}`);
+      console.log(`  template   ${goalTemplate}\n`);
+    }
+
+    if (!requiredOutputs.length) {
+      throw new Error(
+        "no outputs were identified in the goal, so the capability would return nothing. " +
+        "State what the task should report back, or pass --output <name>:<type>.",
+      );
+    }
     const driver = new WebDriver({
       headed: has("headed"),
       slowMoMs: flag("slow") ? Number(flag("slow")) : undefined,
     });
     await driver.launch();
+
+    // The model always sees real values, never a placeholder; the compiler
+    // parameterises afterwards using the provenance it was given.
+    const renderedGoal = Object.entries(params).reduce(
+      (g, [k, v]) => g.replaceAll(`{{${k}}}`, v),
+      goal,
+    );
 
     console.log(`discovering with ${model.id}`);
     console.log(`  goal   ${renderedGoal}`);
@@ -141,7 +169,8 @@ async function main(): Promise<number> {
 
     const artifact = compile({
       run, capabilityId: id,
-      title: flag("title") ?? renderedGoal,
+      // The template, so the title reads as a capability rather than one invocation.
+      title: flag("title") ?? goalTemplate,
       description: flag("description") ?? `Discovered from a live run against ${new URL(entry).host}.`,
       vendor: flag("vendor") ?? "unknown",
       product: flag("product") ?? "unknown",

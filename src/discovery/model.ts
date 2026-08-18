@@ -45,10 +45,21 @@ export interface Exchange {
   text: string;
 }
 
+export interface ToolSpec {
+  name: string;
+  description: string;
+  schema: Record<string, unknown>;
+}
+
 export interface ModelClient {
   /** Provider and model id, recorded in artifact provenance. */
   readonly id: string;
   decide(system: string, history: Exchange[]): Promise<Decision>;
+  /**
+   * One structured answer from one call, for questions that are not "what do I do
+   * next on this screen" — reading a goal's contract, for instance.
+   */
+  callTool(system: string, user: string, tool: ToolSpec): Promise<Record<string, unknown>>;
 }
 
 // ---------------------------------------------------------------------------
@@ -87,12 +98,6 @@ const TARGET_SCHEMA = {
   },
   required: ["role", "name", "nearbyText", "columnHeader", "rowLabel"],
 } as const;
-
-interface ToolSpec {
-  name: string;
-  description: string;
-  schema: Record<string, unknown>;
-}
 
 const obj = (
   props: Record<string, unknown>,
@@ -209,6 +214,24 @@ class AnthropicClient implements ModelClient {
     const input = call.input as Record<string, unknown>;
     return { thought: String(input.thought ?? ""), action: toAction(call.name, input) };
   }
+
+  async callTool(system: string, user: string, tool: ToolSpec): Promise<Record<string, unknown>> {
+    const response = await this.client.messages.create({
+      model: this.model,
+      max_tokens: 4096,
+      system,
+      output_config: { effort: "medium" },
+      tool_choice: { type: "tool", name: tool.name },
+      tools: [{ name: tool.name, description: tool.description, input_schema: tool.schema, strict: true }],
+      messages: [{ role: "user", content: user }],
+    });
+    if (response.stop_reason === "refusal") {
+      throw new ModelRefused(`model declined: ${response.stop_details?.category ?? "unknown"}`);
+    }
+    const call = response.content.find((b) => b.type === "tool_use");
+    if (!call) throw new Error(`model returned no ${tool.name} result`);
+    return call.input as Record<string, unknown>;
+  }
 }
 
 interface AnthropicResponse {
@@ -248,6 +271,21 @@ class OpenAIClient implements ModelClient {
     if (!call) throw new Error("model returned no action");
     const input = JSON.parse(call.function.arguments) as Record<string, unknown>;
     return { thought: String(input.thought ?? ""), action: toAction(call.function.name, input) };
+  }
+
+  async callTool(system: string, user: string, tool: ToolSpec): Promise<Record<string, unknown>> {
+    const response = await this.client.chat.completions.create({
+      model: this.model,
+      tool_choice: { type: "function", function: { name: tool.name } },
+      tools: [{
+        type: "function",
+        function: { name: tool.name, description: tool.description, parameters: tool.schema, strict: true },
+      }],
+      messages: [{ role: "system", content: system }, { role: "user", content: user }],
+    });
+    const call = response.choices[0]?.message?.tool_calls?.[0];
+    if (!call) throw new Error(`model returned no ${tool.name} result`);
+    return JSON.parse(call.function.arguments) as Record<string, unknown>;
   }
 }
 
