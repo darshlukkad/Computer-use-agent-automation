@@ -20,7 +20,7 @@ const BASE = "http://localhost:8080/parabank";
 const CREDS = { user: "john", pass: "demo" };
 
 const artifact: Capability = parseCapability(
-  JSON.parse(readFileSync("capabilities/account.lookup_balance.handwritten.json", "utf8")),
+  JSON.parse(readFileSync("tests/fixtures/lookup_balance.handwritten.json", "utf8")),
 );
 const targetOf = (id: string): Target => artifact.steps.find((s) => s.id === id)!.target!;
 

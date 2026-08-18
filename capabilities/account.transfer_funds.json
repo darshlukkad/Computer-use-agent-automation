@@ -7,17 +7,17 @@
     "status": "approved",
     "title": "transfer {{amount}} from account {{from_account}} to account {{to_account}} and report the confirmation shown",
     "description": "Discovered from a live run against localhost:8080.",
-    "digest": "a6c374b512d83085d9f7524fa589139cca52fd23c2d8adc5210435f9b09a6030",
+    "digest": "dcec199467eac61929438bfc3574e791dfacb6eb7b0111d27f849763d8af6d15",
     "approval": {
-      "digest": "a6c374b512d83085d9f7524fa589139cca52fd23c2d8adc5210435f9b09a6030",
+      "digest": "dcec199467eac61929438bfc3574e791dfacb6eb7b0111d27f849763d8af6d15",
       "approverId": "darsh@band24.com",
-      "approvedAt": "2026-08-18T20:40:30.883Z"
+      "approvedAt": "2026-08-18T21:54:34.274Z"
     }
   },
   "provenance": {
-    "discoveryRunId": "evidence/discover-2026-08-18T20-38-57-084Z",
+    "discoveryRunId": "evidence/discover-2026-08-18T21-52-44-350Z",
     "model": "openai:gpt-5.2",
-    "createdAt": "2026-08-18T20:39:51.609Z",
+    "createdAt": "2026-08-18T21:53:15.231Z",
     "runnerVersion": "0.1.0",
     "liveLlm": true
   },

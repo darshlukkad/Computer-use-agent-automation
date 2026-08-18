@@ -7,17 +7,17 @@
     "status": "approved",
     "title": "open a new SAVINGS account funded from account {{funding_account_number}} and report the new account number",
     "description": "Discovered from a live run against localhost:8080.",
-    "digest": "48babc5a9324344c353a708b803115af208e0409dd877af022dc2fa5f5cafba2",
+    "digest": "06c11eb83bb319eeb6b4b562006154bb96702ff0ebf5e2aa8d686ae3c264c954",
     "approval": {
-      "digest": "48babc5a9324344c353a708b803115af208e0409dd877af022dc2fa5f5cafba2",
+      "digest": "06c11eb83bb319eeb6b4b562006154bb96702ff0ebf5e2aa8d686ae3c264c954",
       "approverId": "darsh@band24.com",
-      "approvedAt": "2026-08-18T21:42:42.282Z"
+      "approvedAt": "2026-08-18T21:54:34.890Z"
     }
   },
   "provenance": {
-    "discoveryRunId": "evidence/discover-2026-08-18T21-41-49-444Z",
+    "discoveryRunId": "evidence/discover-2026-08-18T21-53-44-768Z",
     "model": "openai:gpt-5.2",
-    "createdAt": "2026-08-18T21:42:24.062Z",
+    "createdAt": "2026-08-18T21:54:15.847Z",
     "runnerVersion": "0.1.0",
     "liveLlm": true
   },
@@ -344,7 +344,7 @@
           }
         ],
         "baselineRung": 2,
-        "rationale": "Recorded from a live run: the application names this control \"14454\"; its visible caption is \"Your new account number:\", which is what an operator reads."
+        "rationale": "Recorded from a live run: the application names this control \"14787\"; its visible caption is \"Your new account number:\", which is what an operator reads."
       },
       "effect": "observation",
       "risk": "safe",
