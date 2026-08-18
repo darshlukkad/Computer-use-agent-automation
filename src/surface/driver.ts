@@ -98,5 +98,17 @@ export interface SurfaceDriver {
 
   act(request: ActRequest): Promise<void>;
   screenshot(path: string): Promise<void>;
+
+  /**
+   * Discard authentication state so the next run starts from the same place the
+   * last one did.
+   *
+   * Not an optimisation but a determinism requirement: a capability whose entry
+   * precondition is "the login page is showing" cannot satisfy it against a browser
+   * that is already signed in. Reusing a session would make the second replay of
+   * identical inputs take a different path from the first.
+   */
+  clearSession(): Promise<void>;
+
   close(): Promise<void>;
 }

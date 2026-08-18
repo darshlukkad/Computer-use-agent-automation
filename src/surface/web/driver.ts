@@ -137,6 +137,18 @@ export class WebDriver implements SurfaceDriver {
     await this.p().screenshot({ path, fullPage: false });
   }
 
+  /**
+   * Cookies and storage only — the page, and therefore the handoff seam, survives.
+   * Closing the context here would destroy the very session a human may be about to
+   * take control of.
+   */
+  async clearSession(): Promise<void> {
+    await this.context?.clearCookies();
+    await this.p().evaluate(() => {
+      try { localStorage.clear(); sessionStorage.clear(); } catch { /* file:// or opaque origin */ }
+    }).catch(() => undefined);
+  }
+
   async close(): Promise<void> {
     await this.context?.close().catch(() => undefined);
     await this.browser?.close().catch(() => undefined);

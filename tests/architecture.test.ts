@@ -45,6 +45,39 @@ test("the surface seam itself declares no browser dependency", () => {
   assert.ok(!importsOf("src/surface/driver.ts").some((s) => s.startsWith("playwright")));
 });
 
+test("the replay path cannot reach a model SDK", () => {
+  // The system's central claim is that production runs are deterministic and cost
+  // nothing per invocation. That is a boundary claim, and boundaries erode one
+  // convenient import at a time — so it is checked rather than asserted.
+  const MODEL_SDKS = ["@anthropic-ai/sdk", "openai", "@google/generative-ai", "ollama"];
+
+  const reachable = new Set<string>();
+  const walk = (file: string): void => {
+    if (reachable.has(file)) return;
+    reachable.add(file);
+    for (const spec of importsOf(file)) {
+      if (!spec.startsWith(".")) continue;
+      const resolved = join(file, "..", spec);
+      try { statSync(resolved); walk(resolved); } catch { /* type-only or missing */ }
+    }
+  };
+  walk("src/replay/engine.ts");
+
+  const offenders: string[] = [];
+  for (const file of reachable) {
+    for (const spec of importsOf(file)) {
+      if (MODEL_SDKS.some((sdk) => spec === sdk || spec.startsWith(`${sdk}/`))) {
+        offenders.push(`${file} -> ${spec}`);
+      }
+    }
+  }
+
+  assert.deepEqual(offenders, [],
+    `a model SDK is reachable from the replay engine:\n  ${offenders.join("\n  ")}`);
+  // Sanity: the walk must actually have traversed the graph, or this proves nothing.
+  assert.ok(reachable.size >= 5, `only walked ${reachable.size} files`);
+});
+
 test("the artifact schema depends on nothing but its validator", () => {
   // The schema is the contract shared with reviewers and calling agents; it must
   // not drag in execution machinery.
