@@ -141,7 +141,64 @@ test("table_cell reads a balance by column header and row content", async () => 
   assert.match(balance, /^-?\$[\d,]+\.\d{2}$/, `unexpected balance format: ${balance}`);
 });
 
+// --- the transfer screen: dropdowns and a currency-prefixed field ----------
+
+test("dropdowns are perceived as comboboxes carrying their visible caption", async () => {
+  await driver.act({ action: "navigate", url: `${BASE}/transfer.htm` });
+  await driver.livePage().waitForFunction(
+    () => document.querySelectorAll("#fromAccountId option").length > 0,
+    null, { timeout: 20_000 },
+  );
+
+  const obs = await driver.observe();
+  const combos = obs.nodes.filter((n) => n.role === "combobox");
+  assert.equal(combos.length, 2, "the transfer form has a from and a to account");
+  // Same label-less pattern as the login form: no accessible name, caption only.
+  assert.ok(combos.every((c) => c.name === ""));
+  assert.ok(combos.some((c) => c.nearbyText === "From account #"));
+});
+
+test("a caption is not stolen by an intervening currency symbol", async () => {
+  // Markup is `<b>Amount:</b> $ <input>`, so the literal nearest text node is "$".
+  // That is useless as an anchor and tells a model nothing, so text carrying no
+  // letters is skipped and the walk continues to the real caption.
+  const obs = await driver.observe();
+  const amount = obs.nodes.find((n) => n.role === "textbox");
+  assert.ok(amount);
+  assert.equal(amount.nearbyText, "Amount:");
+});
+
+test("a caption beside its own control resolves to the control, not past it", async () => {
+  // Regression. The markup here is a bare text node sharing a container with the
+  // control it labels:
+  //
+  //   <div> From account # <select id="fromAccountId"> ... </div>
+  //
+  // Anchoring the XPath on the matched *element* selects the <div>, and
+  // `following::` excludes descendants — so the select is skipped and the walk
+  // lands on the Transfer button further down the page. That returns a match count
+  // of exactly 1, so counting matches proves nothing; the assertion has to be that
+  // we reached the RIGHT element.
+  const fromAccount: Target = {
+    strategies: [{ kind: "nearby_text", text: "From account #", direction: "below" }],
+    baselineRung: 1,
+    rationale: "Caption-anchored, like every other control on this app.",
+  };
+  const res = await driver.resolve(fromAccount);
+  assert.equal(res.rung, 1);
+  assert.equal(res.matchCount, 1);
+
+  // selectOption throws on anything that is not a <select>, which is the real check.
+  await driver.act({ action: "select", target: fromAccount, value: "13122" });
+  assert.equal(await driver.readValue(fromAccount), "13122");
+});
+
 test("table_cell finds nothing for an account that is not listed", async () => {
+  await driver.act({ action: "navigate", url: `${BASE}/overview.htm` });
+  await driver.livePage().waitForFunction(
+    () => document.querySelectorAll("#accountTable tbody tr").length > 0,
+    null, { timeout: 20_000 },
+  );
   // The business-outcome path: the automation works, the answer is negative.
   driver.setInputs({ accountId: "99999" });
   await assert.rejects(() => driver.readText(targetOf("s6_read_balance")), TargetMissing);

@@ -96,15 +96,24 @@ export const HARVEST_FN = `function (maxNodes) {
     return (el.getAttribute("title") || "").trim();
   }
 
-  /* Nearest visible text before this element in reading order — what a human reads
-     as the caption when the markup provides no label. */
+  /* Nearest meaningful text before this element in reading order — what a human
+     reads as the caption when the markup provides no label.
+
+     Text carrying no letters is skipped rather than accepted. Currency symbols and
+     punctuation routinely sit between a caption and its field:
+
+       <b>Amount:</b> $ <input id="amount">
+
+     Taking the literal nearest text node yields "$", which is useless as an anchor
+     and tells the model nothing during discovery. Walking back one more node
+     yields "Amount:", which is what an operator reads. */
   function nearbyText(el) {
     var walker = el.ownerDocument.createTreeWalker(el.ownerDocument.body, NodeFilter.SHOW_TEXT, null);
     var best = "", node;
     while ((node = walker.nextNode())) {
       if (el.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING) break;
       var t = (node.textContent || "").replace(/\\s+/g, " ").trim();
-      if (t) best = t;
+      if (t && /[A-Za-z]/.test(t)) best = t;
     }
     return best.slice(0, 80);
   }

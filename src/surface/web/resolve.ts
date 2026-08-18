@@ -46,15 +46,26 @@ function locateIn(frame: Frame, s: LocatorStrategy, inputs: Record<string, strin
       return frame.getByLabel(nameRe(interpolate(s.text, inputs)));
 
     // rung 3 — desktop equivalent: UIA spatial navigation.
-    // The anchor text is matched on its own element, then we step to the nearest
-    // control in reading order. This is what an operator does when a field has no
-    // programmatic label at all.
+    // Step from the caption to the nearest control in reading order — what an
+    // operator does when a field has no programmatic label at all.
+    //
+    // The anchor is the TEXT NODE, not its containing element. Anchoring on the
+    // element is wrong whenever the caption is a bare text node beside its own
+    // control:
+    //
+    //   <div> From account # <select id="fromAccountId"> ... </div>
+    //
+    // There the element match is the <div>, and XPath's `following::` axis excludes
+    // descendants — so the select inside it is skipped and the walk lands on
+    // whatever control comes after the div closes. That resolves to exactly one
+    // element and is confidently wrong, which is the worst failure mode available.
+    // Anchoring on the text node makes both shapes behave the same.
     case "nearby_text": {
       const text = interpolate(s.text, inputs);
       const axis = s.direction === "above" || s.direction === "left" ? "preceding" : "following";
       const idx = axis === "preceding" ? "last()" : "1";
       return frame.locator(
-        `xpath=//*[normalize-space(text())=${xpathLiteral(text)}]/${axis}::*[${CONTROL}][${idx}]`,
+        `xpath=//text()[normalize-space(.)=${xpathLiteral(text)}]/${axis}::*[${CONTROL}][${idx}]`,
       );
     }
 
