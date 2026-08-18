@@ -196,6 +196,9 @@ export async function replay(opts: ReplayOptions): Promise<ReplayResult> {
 
       if (!satisfied) {
         if (lastError instanceof TargetAmbiguous) {
+          // Not escalated even when the step asks for it: an ambiguous target is a
+          // defect in the artifact, and the remedy is editing the locator, not
+          // anything a person can do in the browser.
           return done({
             ...base, status: "failure", code: "TARGET_AMBIGUOUS",
             stepId: step.id,
@@ -318,6 +321,20 @@ export async function replay(opts: ReplayOptions): Promise<ReplayResult> {
       });
       await runRecovery(verdict.recover, index);
       return null;
+    }
+
+    // The step may declare that a person could plausibly finish this — a
+    // confirmation needing sign-off, or a screen that occasionally demands a second
+    // factor. Escalating keeps the session alive so the run can still complete.
+    if (step?.onError === "escalate") {
+      await driver.screenshot(join(evidenceDir, "intervention.png")).catch(() => undefined);
+      return done({
+        ...base, status: "intervention_required",
+        interventionId: `iv_${Date.now().toString(36)}`,
+        code: verdict.code ?? code,
+        reason: `step declares onError=escalate; expected ${expected}`,
+        stepId: step.id, trace,
+      });
     }
 
     await driver.screenshot(join(evidenceDir, "failure.png")).catch(() => undefined);

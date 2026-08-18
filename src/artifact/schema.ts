@@ -171,6 +171,23 @@ export const Step = z.object({
   maxAttempts: z.number().int().min(1).max(5).default(1),
   /** Name of the output this step's read populates. */
   extractTo: z.string().optional(),
+  /**
+   * What to do when this step cannot be satisfied and no exception rule explains it.
+   *
+   * `fail` stops with a debuggable error. `escalate` hands the live session to a
+   * human instead — right for a step a person could plausibly complete themselves,
+   * such as a confirmation that needs sign-off, or a screen that occasionally
+   * demands a second factor.
+   *
+   * Deliberately per-step rather than global: whether a human can help depends
+   * entirely on which step is stuck. Declaring it in the artifact keeps that
+   * judgement reviewable next to the step it applies to.
+   *
+   * There is no `skip`. Skipping a step whose checkpoint failed means continuing in
+   * a state nothing has verified, which is the one thing checkpoints exist to
+   * prevent.
+   */
+  onError: z.enum(["fail", "escalate"]).default("fail"),
 });
 export type Step = z.infer<typeof Step>;
 

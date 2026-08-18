@@ -36,6 +36,9 @@ const load = (): Capability => {
   return parseCapability(raw);
 };
 
+/** Structured clone so a mutation in one test cannot leak into another. */
+const clone = (a: Capability): Capability => JSON.parse(JSON.stringify(a)) as Capability;
+
 const evidenceRoot = mkdtempSync(join(tmpdir(), "cua-evidence-"));
 let driver: WebDriver;
 
@@ -146,6 +149,66 @@ test("replay is deterministic across runs", async () => {
     b.trace.map((t) => [t.stepId, t.resolvedRung]),
     "same inputs, same steps, same rungs",
   );
+});
+
+// --- whether a human can help is a per-step judgement ---------------------
+
+/** Break one step's locator so it cannot resolve, and set its escalation policy. */
+function withUnreachableStep(onError: "fail" | "escalate"): Capability {
+  const a = clone(load());
+  const step = a.steps.find((s) => s.id === "s4_signin")!;
+  step.target = {
+    strategies: [{ kind: "role_name", role: "button", name: "Authorise Wire" }],
+    baselineRung: 1,
+    rationale: "deliberately absent from this application",
+  };
+  step.onError = onError;
+  return approve(a, "test@local");
+}
+
+test("a step that cannot be satisfied fails by default", async () => {
+  const result = await replay({
+    artifact: withUnreachableStep("fail"),
+    inputs: { accountId: "13122" }, driver, evidenceRoot,
+  });
+  assert.equal(result.status, "failure");
+  if (result.status !== "failure") return;
+  assert.equal(result.stepId, "s4_signin");
+  assert.equal(result.code, "TARGET_MISSING");
+});
+
+test("the same step escalates instead when it declares onError=escalate", async () => {
+  // Right for a confirmation needing sign-off, or a screen that occasionally
+  // demands a second factor: a person could plausibly finish it, and the session
+  // stays alive so the run can still complete.
+  const result = await replay({
+    artifact: withUnreachableStep("escalate"),
+    inputs: { accountId: "13122" }, driver, evidenceRoot,
+  });
+  assert.equal(result.status, "intervention_required");
+  if (result.status !== "intervention_required") return;
+  assert.equal(result.stepId, "s4_signin");
+  assert.match(result.reason, /onError=escalate/);
+});
+
+test("an ambiguous target is never escalated, whatever the step asks for", async () => {
+  // A human at a browser cannot fix an ambiguous locator; the remedy is editing the
+  // artifact. Escalating would route a code defect to an operator.
+  const a = clone(load());
+  const step = a.steps.find((s) => s.id === "s4_signin")!;
+  step.target = {
+    strategies: [{ kind: "css", selector: "a" }],
+    baselineRung: 1,
+    rationale: "deliberately ambiguous",
+  };
+  step.onError = "escalate";
+
+  const result = await replay({
+    artifact: approve(a, "test@local"),
+    inputs: { accountId: "13122" }, driver, evidenceRoot,
+  });
+  assert.equal(result.status, "failure");
+  assert.equal(result.status === "failure" && result.code, "TARGET_AMBIGUOUS");
 });
 
 // --- the capability states its own result ---------------------------------
