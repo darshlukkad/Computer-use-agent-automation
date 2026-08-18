@@ -14,7 +14,15 @@ import {
 import { approve, verifyApproval, artifactDigest, canonicalJson } from "../src/artifact/digest.ts";
 import { classifyDrift } from "../src/result/types.ts";
 
-const FIXTURE = "capabilities/account.lookup_balance.handwritten.json";
+/**
+ * Hand-written on purpose, and kept out of capabilities/ so it is never mistaken for a
+ * shipped one. It exists because the schema had to be proved able to express a real
+ * legacy flow before a replay engine was built on it — writing it by hand is what
+ * surfaced two schema gaps early. It is also the only artifact carrying exception
+ * rules, so the business-outcome tests run against it until a discovered artifact
+ * earns its own through an outcome probe.
+ */
+const FIXTURE = "tests/fixtures/lookup_balance.handwritten.json";
 /**
  * Normalised to draft so tests do not depend on whether someone has run
  * `cli approve` against the fixture on disk. Anything needing an approved artifact

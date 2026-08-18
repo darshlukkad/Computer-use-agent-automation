@@ -21,7 +21,7 @@ import {
   parseMoney, renderAnswer, resolveSecret, validateInputs, ValueError,
 } from "../src/replay/values.ts";
 
-const FIXTURE = "capabilities/account.lookup_balance.handwritten.json";
+const FIXTURE = "tests/fixtures/lookup_balance.handwritten.json";
 /**
  * Normalised to draft so tests do not depend on whether someone has run
  * `cli approve` against the fixture on disk. Anything needing an approved artifact

@@ -13,6 +13,7 @@
 import type { Frame, Locator, Page } from "playwright";
 import type { LocatorStrategy, Target } from "../../artifact/schema.ts";
 import { TargetAmbiguous, TargetMissing, type Resolution } from "../driver.ts";
+import { nearbyExpr } from "./axtree.ts";
 
 /** Interpolate `${inputs.foo}` against the run's parameters. */
 export function interpolate(text: string, inputs: Record<string, string>): string {
@@ -29,9 +30,6 @@ function escapeRe(s: string): string {
 function nameRe(name: string): RegExp {
   return new RegExp(`^\\s*${escapeRe(name)}\\s*$`, "i");
 }
-
-/** Controls a nearby-text anchor could plausibly be labelling. */
-const CONTROL = "self::input or self::select or self::textarea or self::button or self::a";
 
 function locateIn(frame: Frame, s: LocatorStrategy, inputs: Record<string, string>): Locator {
   switch (s.kind) {
@@ -60,14 +58,10 @@ function locateIn(frame: Frame, s: LocatorStrategy, inputs: Record<string, strin
     // whatever control comes after the div closes. That resolves to exactly one
     // element and is confidently wrong, which is the worst failure mode available.
     // Anchoring on the text node makes both shapes behave the same.
-    case "nearby_text": {
-      const text = interpolate(s.text, inputs);
-      const axis = s.direction === "above" || s.direction === "left" ? "preceding" : "following";
-      const idx = axis === "preceding" ? "last()" : "1";
-      return frame.locator(
-        `xpath=//text()[normalize-space(.)=${xpathLiteral(text)}]/${axis}::*[${CONTROL}][${idx}]`,
-      );
-    }
+    case "nearby_text":
+      // Resolved in-page by resolveNearbyText(), because the anchor has to be checked
+      // for visibility and XPath cannot see computed style.
+      throw new Error("nearby_text is resolved separately");
 
     // rung 4 — desktop equivalent: UIA Grid/Table pattern.
     // Column located by header text and row by content, so neither column order nor
@@ -81,11 +75,32 @@ function locateIn(frame: Frame, s: LocatorStrategy, inputs: Record<string, strin
   }
 }
 
-function xpathLiteral(s: string): string {
-  if (!s.includes("'")) return `'${s}'`;
-  if (!s.includes('"')) return `"${s}"`;
-  return `concat('${s.split("'").join(`', "'", '`)}')`;
+/**
+ * Find the control a visible caption is labelling.
+ *
+ * Runs in the page because the decisive test is whether the *anchor* is visible, and
+ * computed style is not reachable from XPath. ParaBank showed why this matters: its
+ * transfer page carries a hidden confirmation template that repeats the words "to
+ * account #", so an XPath anchored on text alone matched the real dropdown plus a
+ * link that merely followed the invisible copy. Two matches, and the run stopped —
+ * correctly, but for a caption a person cannot see and would never have used.
+ *
+ * Returns a unique CSS path per hit, used only to hand the element back to the
+ * locator engine. It is never stored in an artifact; the artifact keeps the semantic
+ * instruction, and this is how that instruction is carried out.
+ */
+async function resolveNearbyText(
+  frame: Frame,
+  s: Extract<LocatorStrategy, { kind: "nearby_text" }>,
+  inputs: Record<string, string>,
+): Promise<Locator[]> {
+  const axis = s.direction === "above" || s.direction === "left" ? "preceding" : "following";
+  const paths = (await frame.evaluate(
+    nearbyExpr(interpolate(s.text, inputs), axis),
+  )) as string[];
+  return paths.map((p) => frame.locator(p));
 }
+
 
 /**
  * table_cell needs two lookups the locator engine cannot express in one selector:
@@ -141,9 +156,9 @@ async function visibleMatches(
   for (const frame of framesOf(page)) {
     try {
       const candidates =
-        s.kind === "table_cell"
-          ? await resolveTableCell(frame, s, inputs)
-          : await spread(locateIn(frame, s, inputs));
+        s.kind === "table_cell" ? await resolveTableCell(frame, s, inputs)
+        : s.kind === "nearby_text" ? await resolveNearbyText(frame, s, inputs)
+        : await spread(locateIn(frame, s, inputs));
       for (const c of candidates) {
         if (await c.isVisible().catch(() => false)) found.push(c);
       }

@@ -1,0 +1,446 @@
+{
+  "apiVersion": "cua.capability/v1",
+  "kind": "Capability",
+  "metadata": {
+    "id": "account.transfer_funds",
+    "version": "1.0.0",
+    "status": "approved",
+    "title": "transfer {{amount}} from account {{from_account}} to account {{to_account}} and report the confirmation shown",
+    "description": "Discovered from a live run against localhost:8080.",
+    "digest": "dcec199467eac61929438bfc3574e791dfacb6eb7b0111d27f849763d8af6d15",
+    "approval": {
+      "digest": "dcec199467eac61929438bfc3574e791dfacb6eb7b0111d27f849763d8af6d15",
+      "approverId": "darsh@band24.com",
+      "approvedAt": "2026-08-18T21:54:34.274Z"
+    }
+  },
+  "provenance": {
+    "discoveryRunId": "evidence/discover-2026-08-18T21-52-44-350Z",
+    "model": "openai:gpt-5.2",
+    "createdAt": "2026-08-18T21:53:15.231Z",
+    "runnerVersion": "0.1.0",
+    "liveLlm": true
+  },
+  "compatibility": {
+    "vendor": "parasoft",
+    "product": "parabank",
+    "versionRange": ">=5.0.0 <6.0.0"
+  },
+  "entry": {
+    "originAllowlist": [
+      "http://localhost:8080"
+    ],
+    "path": "/parabank/index.htm"
+  },
+  "signature": {
+    "inputs": {
+      "amount": {
+        "type": "string",
+        "required": true,
+        "pii": "identifier",
+        "description": "Supplied per invocation; typed into the control labelled \"Amount:\" during discovery."
+      },
+      "from_account": {
+        "type": "string",
+        "required": true,
+        "pii": "identifier",
+        "description": "Supplied per invocation; typed into the control labelled \"From account #\" during discovery."
+      },
+      "to_account": {
+        "type": "string",
+        "required": true,
+        "pii": "identifier",
+        "description": "Supplied per invocation; typed into the control labelled \"to account #\" during discovery."
+      }
+    },
+    "outputs": {
+      "confirmation": {
+        "type": "string",
+        "required": true,
+        "pii": "none",
+        "description": "Read from the control labelled \"Transfer Complete!\" during discovery."
+      }
+    }
+  },
+  "preconditions": [
+    {
+      "kind": "text_present",
+      "text": "Customer Login"
+    }
+  ],
+  "steps": [
+    {
+      "id": "s1_open",
+      "action": "navigate",
+      "effect": "observation",
+      "risk": "safe",
+      "postcondition": {
+        "kind": "text_present",
+        "text": "Customer Login"
+      },
+      "timeoutMs": 15000,
+      "maxAttempts": 1,
+      "onError": "fail"
+    },
+    {
+      "id": "s2_fill_username",
+      "action": "fill",
+      "target": {
+        "strategies": [
+          {
+            "kind": "label",
+            "text": "Username"
+          },
+          {
+            "kind": "nearby_text",
+            "text": "Username",
+            "direction": "below"
+          }
+        ],
+        "baselineRung": 2,
+        "rationale": "Recorded from a live run: its visible caption is \"Username\", which is what an operator reads because the application gives this control no name of its own."
+      },
+      "value": {
+        "kind": "secret",
+        "ref": "operator_username"
+      },
+      "effect": "idempotent_write",
+      "risk": "safe",
+      "postcondition": {
+        "kind": "value_non_empty",
+        "target": {
+          "strategies": [
+            {
+              "kind": "label",
+              "text": "Username"
+            },
+            {
+              "kind": "nearby_text",
+              "text": "Username",
+              "direction": "below"
+            }
+          ],
+          "baselineRung": 2,
+          "rationale": "The control written by this step; asserts the write landed."
+        }
+      },
+      "timeoutMs": 15000,
+      "maxAttempts": 1,
+      "onError": "fail"
+    },
+    {
+      "id": "s3_fill_password",
+      "action": "fill",
+      "target": {
+        "strategies": [
+          {
+            "kind": "label",
+            "text": "Password"
+          },
+          {
+            "kind": "nearby_text",
+            "text": "Password",
+            "direction": "below"
+          }
+        ],
+        "baselineRung": 2,
+        "rationale": "Recorded from a live run: its visible caption is \"Password\", which is what an operator reads because the application gives this control no name of its own."
+      },
+      "value": {
+        "kind": "secret",
+        "ref": "operator_password"
+      },
+      "effect": "idempotent_write",
+      "risk": "safe",
+      "postcondition": {
+        "kind": "value_non_empty",
+        "target": {
+          "strategies": [
+            {
+              "kind": "label",
+              "text": "Password"
+            },
+            {
+              "kind": "nearby_text",
+              "text": "Password",
+              "direction": "below"
+            }
+          ],
+          "baselineRung": 2,
+          "rationale": "The control written by this step; asserts the write landed."
+        }
+      },
+      "timeoutMs": 15000,
+      "maxAttempts": 1,
+      "onError": "fail"
+    },
+    {
+      "id": "s4_click_log_in",
+      "action": "click",
+      "target": {
+        "strategies": [
+          {
+            "kind": "role_name",
+            "role": "button",
+            "name": "Log In"
+          }
+        ],
+        "baselineRung": 1,
+        "rationale": "Recorded from a live run: the application names this control \"Log In\"."
+      },
+      "effect": "idempotent_write",
+      "risk": "safe",
+      "postcondition": {
+        "kind": "text_present",
+        "text": "Account Services"
+      },
+      "timeoutMs": 20000,
+      "maxAttempts": 1,
+      "onError": "fail"
+    },
+    {
+      "id": "s5_click_transfer_funds",
+      "action": "click",
+      "target": {
+        "strategies": [
+          {
+            "kind": "role_name",
+            "role": "link",
+            "name": "Transfer Funds"
+          }
+        ],
+        "baselineRung": 1,
+        "rationale": "Recorded from a live run: the application names this control \"Transfer Funds\"."
+      },
+      "effect": "reversible_mutation",
+      "risk": "reversible",
+      "postcondition": {
+        "kind": "text_present",
+        "text": "Transfer Funds"
+      },
+      "timeoutMs": 20000,
+      "maxAttempts": 1,
+      "onError": "fail"
+    },
+    {
+      "id": "s6_fill_amount",
+      "action": "fill",
+      "target": {
+        "strategies": [
+          {
+            "kind": "label",
+            "text": "Amount:"
+          },
+          {
+            "kind": "nearby_text",
+            "text": "Amount:",
+            "direction": "below"
+          }
+        ],
+        "baselineRung": 2,
+        "rationale": "Recorded from a live run: its visible caption is \"Amount:\", which is what an operator reads because the application gives this control no name of its own."
+      },
+      "value": {
+        "kind": "param",
+        "name": "amount"
+      },
+      "effect": "idempotent_write",
+      "risk": "safe",
+      "postcondition": {
+        "kind": "value_equals",
+        "target": {
+          "strategies": [
+            {
+              "kind": "label",
+              "text": "Amount:"
+            },
+            {
+              "kind": "nearby_text",
+              "text": "Amount:",
+              "direction": "below"
+            }
+          ],
+          "baselineRung": 2,
+          "rationale": "The control written by this step; asserts the write landed."
+        },
+        "value": "${inputs.amount}"
+      },
+      "timeoutMs": 15000,
+      "maxAttempts": 1,
+      "onError": "fail"
+    },
+    {
+      "id": "s7_select_from_account",
+      "action": "select",
+      "target": {
+        "strategies": [
+          {
+            "kind": "label",
+            "text": "From account #"
+          },
+          {
+            "kind": "nearby_text",
+            "text": "From account #",
+            "direction": "below"
+          }
+        ],
+        "baselineRung": 2,
+        "rationale": "Recorded from a live run: its visible caption is \"From account #\", which is what an operator reads because the application gives this control no name of its own."
+      },
+      "value": {
+        "kind": "param",
+        "name": "from_account"
+      },
+      "effect": "idempotent_write",
+      "risk": "safe",
+      "postcondition": {
+        "kind": "value_equals",
+        "target": {
+          "strategies": [
+            {
+              "kind": "label",
+              "text": "From account #"
+            },
+            {
+              "kind": "nearby_text",
+              "text": "From account #",
+              "direction": "below"
+            }
+          ],
+          "baselineRung": 2,
+          "rationale": "The control written by this step; asserts the write landed."
+        },
+        "value": "${inputs.from_account}"
+      },
+      "timeoutMs": 15000,
+      "maxAttempts": 1,
+      "onError": "fail"
+    },
+    {
+      "id": "s8_select_to_account",
+      "action": "select",
+      "target": {
+        "strategies": [
+          {
+            "kind": "label",
+            "text": "to account #"
+          },
+          {
+            "kind": "nearby_text",
+            "text": "to account #",
+            "direction": "below"
+          }
+        ],
+        "baselineRung": 2,
+        "rationale": "Recorded from a live run: its visible caption is \"to account #\", which is what an operator reads because the application gives this control no name of its own."
+      },
+      "value": {
+        "kind": "param",
+        "name": "to_account"
+      },
+      "effect": "idempotent_write",
+      "risk": "safe",
+      "postcondition": {
+        "kind": "value_equals",
+        "target": {
+          "strategies": [
+            {
+              "kind": "label",
+              "text": "to account #"
+            },
+            {
+              "kind": "nearby_text",
+              "text": "to account #",
+              "direction": "below"
+            }
+          ],
+          "baselineRung": 2,
+          "rationale": "The control written by this step; asserts the write landed."
+        },
+        "value": "${inputs.to_account}"
+      },
+      "timeoutMs": 15000,
+      "maxAttempts": 1,
+      "onError": "fail"
+    },
+    {
+      "id": "s9_click_transfer",
+      "action": "click",
+      "target": {
+        "strategies": [
+          {
+            "kind": "role_name",
+            "role": "button",
+            "name": "Transfer"
+          }
+        ],
+        "baselineRung": 1,
+        "rationale": "Recorded from a live run: the application names this control \"Transfer\"."
+      },
+      "effect": "irreversible_mutation",
+      "risk": "irreversible",
+      "postcondition": {
+        "kind": "text_present",
+        "text": "Transfer Complete!"
+      },
+      "timeoutMs": 20000,
+      "maxAttempts": 1,
+      "onError": "escalate"
+    },
+    {
+      "id": "s10_read_transfer_complete",
+      "action": "read",
+      "target": {
+        "strategies": [
+          {
+            "kind": "label",
+            "text": "Transfer Complete!"
+          },
+          {
+            "kind": "nearby_text",
+            "text": "Transfer Complete!",
+            "direction": "below"
+          }
+        ],
+        "baselineRung": 2,
+        "rationale": "Recorded from a live run: its visible caption is \"Transfer Complete!\", which is what an operator reads because the application gives this control no name of its own."
+      },
+      "effect": "observation",
+      "risk": "safe",
+      "timeoutMs": 15000,
+      "maxAttempts": 3,
+      "extractTo": "confirmation",
+      "onError": "fail"
+    }
+  ],
+  "exceptions": [],
+  "success": {
+    "checkpoint": {
+      "kind": "all",
+      "items": [
+        {
+          "kind": "text_present",
+          "text": "Account Services"
+        },
+        {
+          "kind": "text_present",
+          "text": "${inputs.amount}"
+        },
+        {
+          "kind": "text_present",
+          "text": "${inputs.from_account}"
+        },
+        {
+          "kind": "text_present",
+          "text": "${inputs.to_account}"
+        }
+      ]
+    },
+    "extract": [
+      {
+        "output": "confirmation",
+        "from": "s10_read_transfer_complete"
+      }
+    ]
+  }
+}
