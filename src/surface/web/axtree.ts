@@ -127,6 +127,28 @@ export const HARVEST_FN = `function (maxNodes) {
     return best.slice(0, 80);
   }
 
+  /* Column header from the table's header row, row identity from its first cell. */
+  function cellCoords(el) {
+    var out = { column: "", row: "" };
+    var tr = el.closest("tr");
+    var table = el.closest("table");
+    if (!tr || !table) return out;
+
+    var cellsInRow = tr.querySelectorAll("td");
+    var index = -1;
+    for (var c = 0; c < cellsInRow.length; c++) if (cellsInRow[c] === el) index = c;
+    if (index < 0) return out;
+
+    var headers = table.querySelectorAll("th");
+    if (headers.length > index) {
+      out.column = (headers[index].textContent || "").replace(/\\s+/g, " ").trim().slice(0, 60);
+    }
+    if (index > 0 && cellsInRow[0]) {
+      out.row = (cellsInRow[0].textContent || "").replace(/\\s+/g, " ").trim().slice(0, 60);
+    }
+    return out;
+  }
+
   function visible(el) {
     var r = el.getBoundingClientRect();
     if (r.width === 0 && r.height === 0) return false;
@@ -165,11 +187,24 @@ export const HARVEST_FN = `function (maxNodes) {
       node.value = String(el.value || "").slice(0, 80);
     } else if (role === "cell") {
       node.value = (el.textContent || "").replace(/\\s+/g, " ").trim().slice(0, 80);
+      /* A cell in a table needs coordinates, not a neighbour. Anchoring on the
+         nearest preceding text gives the cell to its left, which in a data table is
+         a different row's value — so report the column header and the row's leading
+         cell instead, which is how a person locates a figure in a grid. */
+      var coords = cellCoords(el);
+      if (coords.column) node.columnHeader = coords.column;
+      if (coords.row) node.rowLabel = coords.row;
     }
 
     /* Only worth computing when the app gave the control no name of its own. A cell
-       is always in this position: its text is the value, never the caption. */
-    if (!name || role === "cell") {
+       is always in this position: its text is the value, never the caption.
+
+       But a cell that already has coordinates must NOT also carry nearbyText. In a
+       data table the nearest preceding text is the last column header, which is the
+       same misleading string for every cell in the body — and on a live run the model
+       trusted it and read one account's number as another account's balance. */
+    var hasCoords = role === "cell" && node.columnHeader && node.rowLabel;
+    if ((!name || role === "cell") && !hasCoords) {
       var near = nearbyText(el);
       if (near) node.nearbyText = near;
     }

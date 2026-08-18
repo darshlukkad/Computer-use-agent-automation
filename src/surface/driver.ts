@@ -26,6 +26,10 @@ export interface AxNode {
   value?: string;
   /** Nearest preceding visible text. Populated only when `name` is empty. */
   nearbyText?: string;
+  /** For a cell in a headed table: the header of its column. */
+  columnHeader?: string;
+  /** For a cell in a table: the leading cell of its row, which identifies the record. */
+  rowLabel?: string;
   /** Frame name or url; legacy apps put real content inside framesets. */
   frame?: string;
 }

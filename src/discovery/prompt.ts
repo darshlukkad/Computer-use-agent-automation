@@ -31,8 +31,11 @@ How controls are described to you:
   It is the caption a human reads next to the field. Legacy applications frequently
   provide only this, and it is a legitimate way to identify a control — pass it back in
   the target exactly as shown.
-- Identify a target by copying its role together with whichever of name or nearbyText
-  the observation actually gave you. Do not invent either.
+- A cell in a table is given a "columnHeader" and a "rowLabel" instead. Identify it by
+  copying BOTH: a column alone names no single value, and the cell beside a column
+  header belongs to the first row, not to the record you want.
+- Identify a target by copying the fields the observation actually gave you. Do not
+  invent any of them.
 
 How to work:
 - One action per turn. After each one you will see the new state of the screen.
@@ -72,6 +75,8 @@ export function renderObservation(o: Observation): string {
           const parts = [`role=${n.role}`];
           if (n.name) parts.push(`name=${JSON.stringify(n.name)}`);
           if (n.nearbyText) parts.push(`nearbyText=${JSON.stringify(n.nearbyText)}`);
+          if (n.columnHeader) parts.push(`columnHeader=${JSON.stringify(n.columnHeader)}`);
+          if (n.rowLabel) parts.push(`rowLabel=${JSON.stringify(n.rowLabel)}`);
           if (n.value) parts.push(`value=${JSON.stringify(n.value)}`);
           if (n.frame) parts.push(`frame=${JSON.stringify(n.frame)}`);
           return `  - ${parts.join(" ")}`;

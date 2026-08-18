@@ -5,19 +5,19 @@
     "id": "account.lookup_balance_discovered",
     "version": "1.0.0",
     "status": "approved",
-    "title": "look up the current balance for account 13122",
-    "description": "Discovered from a live run against localhost:8080.",
-    "digest": "ceaca5c5d97d65d968893dfe3e8222870f8739b49155fb9492a4d0c2d571d897",
+    "title": "Look up an account's current balance",
+    "description": "Signs in to the servicing console and reads the current balance for the given account from the accounts overview.",
+    "digest": "12ee030e6f28a98785b1426fad005c46d1335c55943c921f42e6f080fe8826ae",
     "approval": {
-      "digest": "ceaca5c5d97d65d968893dfe3e8222870f8739b49155fb9492a4d0c2d571d897",
+      "digest": "12ee030e6f28a98785b1426fad005c46d1335c55943c921f42e6f080fe8826ae",
       "approverId": "darsh@band24.com",
-      "approvedAt": "2026-08-18T19:47:39.559Z"
+      "approvedAt": "2026-08-18T20:07:59.819Z"
     }
   },
   "provenance": {
-    "discoveryRunId": "evidence/discover-2026-08-18T19-46-54-650Z",
+    "discoveryRunId": "evidence/discover-2026-08-18T19-57-50-119Z",
     "model": "openai:gpt-5.2",
-    "createdAt": "2026-08-18T19:47:04.489Z",
+    "createdAt": "2026-08-18T19:58:05.648Z",
     "runnerVersion": "0.1.0",
     "liveLlm": true
   },
@@ -46,7 +46,7 @@
         "type": "money",
         "required": true,
         "pii": "none",
-        "description": "Read from the control labelled \"Balance:\" during discovery."
+        "description": "Read from the cell under \"Balance*\" during discovery."
       }
     }
   },
@@ -187,46 +187,18 @@
       "onError": "fail"
     },
     {
-      "id": "s5_click_13122",
-      "action": "click",
-      "target": {
-        "strategies": [
-          {
-            "kind": "role_name",
-            "role": "link",
-            "name": "${inputs.accountId}"
-          }
-        ],
-        "baselineRung": 1,
-        "rationale": "Recorded from a live run: the application names this control \"13122\"."
-      },
-      "effect": "idempotent_write",
-      "risk": "safe",
-      "postcondition": {
-        "kind": "text_present",
-        "text": "Account Details"
-      },
-      "timeoutMs": 20000,
-      "maxAttempts": 1,
-      "onError": "fail"
-    },
-    {
-      "id": "s6_read_balance",
+      "id": "s5_read_balance",
       "action": "read",
       "target": {
         "strategies": [
           {
-            "kind": "label",
-            "text": "Balance:"
-          },
-          {
-            "kind": "nearby_text",
-            "text": "Balance:",
-            "direction": "below"
+            "kind": "table_cell",
+            "header": "Balance*",
+            "rowMatch": "${inputs.accountId}"
           }
         ],
-        "baselineRung": 2,
-        "rationale": "Recorded from a live run: its visible caption is \"Balance:\", which is what an operator reads because the application gives this control no name of its own."
+        "baselineRung": 1,
+        "rationale": "Recorded from a live run: it is the cell under \"Balance*\" in the row for \"13344\", so neither column order nor row order matters."
       },
       "effect": "observation",
       "risk": "safe",
@@ -254,8 +226,9 @@
     "extract": [
       {
         "output": "balance",
-        "from": "s6_read_balance"
+        "from": "s5_read_balance"
       }
-    ]
+    ],
+    "answer": "The current balance for account ${inputs.accountId} is ${outputs.balance}."
   }
 }

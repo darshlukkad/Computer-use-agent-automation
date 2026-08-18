@@ -92,6 +92,16 @@ function ladderFor(t: ModelTarget): Target {
   const strategies: Target["strategies"] = [];
   const reasons: string[] = [];
 
+  // A figure in a grid is located by column and row, never by what sits beside it:
+  // stepping from a column header to the next cell lands in the first row, which on a
+  // live run read one account's number as another account's balance.
+  if (t.columnHeader && t.rowLabel) {
+    strategies.push({ kind: "table_cell", header: t.columnHeader, rowMatch: t.rowLabel });
+    reasons.push(
+      `it is the cell under ${JSON.stringify(t.columnHeader)} in the row for ` +
+      `${JSON.stringify(t.rowLabel)}, so neither column order nor row order matters`,
+    );
+  }
   if (t.name) {
     strategies.push({ kind: "role_name", role: t.role, name: t.name });
     reasons.push(`the application names this control ${JSON.stringify(t.name)}`);

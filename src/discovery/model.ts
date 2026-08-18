@@ -19,6 +19,10 @@ export interface ModelTarget {
   name?: string;
   /** The visible caption, for controls the app left unnamed. */
   nearbyText?: string;
+  /** For a cell in a table: its column. Meaningless without a row. */
+  columnHeader?: string;
+  /** For a cell in a table: which row, identified by its leading cell. */
+  rowLabel?: string;
 }
 
 /** The closed action vocabulary. The model can emit nothing else. */
@@ -70,8 +74,18 @@ const TARGET_SCHEMA = {
       type: ["string", "null"],
       description: "Its nearbyText, or null. Present for controls the application left unnamed.",
     },
+    columnHeader: {
+      type: ["string", "null"],
+      description:
+        "For a cell in a table, its columnHeader. Always give rowLabel too — a column " +
+        "alone identifies no single value.",
+    },
+    rowLabel: {
+      type: ["string", "null"],
+      description: "For a cell in a table, its rowLabel: which record the row is about.",
+    },
   },
-  required: ["role", "name", "nearbyText"],
+  required: ["role", "name", "nearbyText", "columnHeader", "rowLabel"],
 } as const;
 
 interface ToolSpec {
@@ -144,6 +158,8 @@ function cleanTarget(raw: unknown): ModelTarget {
   const target: ModelTarget = { role: String(t.role ?? "") };
   if (typeof t.name === "string" && t.name) target.name = t.name;
   if (typeof t.nearbyText === "string" && t.nearbyText) target.nearbyText = t.nearbyText;
+  if (typeof t.columnHeader === "string" && t.columnHeader) target.columnHeader = t.columnHeader;
+  if (typeof t.rowLabel === "string" && t.rowLabel) target.rowLabel = t.rowLabel;
   return target;
 }
 
