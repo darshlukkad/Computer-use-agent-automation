@@ -94,11 +94,39 @@ export function validateOutputs(
 }
 
 /**
- * Secrets are resolved from the environment at the moment of use and never stored,
- * logged, or returned. The artifact carries only the variable name.
+ * Credentials are a runtime binding, never a capability input.
+ *
+ * Three reasons they are not part of `signature.inputs`:
+ *
+ *   - §3.4 forbids persisting credentials. An input flows into shell history, the
+ *     result contract, logs and evidence; the leak then has to be fought in every
+ *     one of those places instead of never existing.
+ *   - The calling agent should not hold the institution's operator password. A
+ *     prompt injection that reaches an agent holding only `accountId` can misuse a
+ *     bounded action set; one that reaches an agent holding credentials has full
+ *     operator access.
+ *   - Declaring "this flow needs an operator credential" and deciding *which*
+ *     credential are different jobs with different review paths.
+ *
+ * The artifact names a LOGICAL ROLE, never an environment variable or an
+ * institution. `operator_password` resolves per tenant, so one approved artifact
+ * serves every tenant running the same vendor product. Baking `SUMMIT_PASSWORD`
+ * into the artifact would mean editing it per tenant — changing its content,
+ * invalidating its digest, and forcing re-approval for what is purely deployment
+ * configuration.
  */
-export function resolveSecret(ref: string): string {
-  const value = process.env[ref];
-  if (!value) throw new ValueError(`secret '${ref}' is not set in the environment`);
-  return value;
+export function resolveSecret(ref: string, tenant?: string | null): string {
+  const logical = ref.toUpperCase().replace(/[^A-Z0-9]+/g, "_");
+  const candidates = tenant
+    ? [`${tenant.toUpperCase().replace(/[^A-Z0-9]+/g, "_")}_${logical}`, logical]
+    : [logical];
+
+  for (const name of candidates) {
+    const value = process.env[name];
+    if (value) return value;
+  }
+  // Names the variables it looked for, never a value.
+  throw new ValueError(
+    `credential '${ref}' is unbound; set one of: ${candidates.join(", ")}`,
+  );
 }

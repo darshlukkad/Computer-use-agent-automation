@@ -1,13 +1,18 @@
 {
-  "_note": "TEMPORARY schema-gate fixture, hand-written to prove the schema can express the real ParaBank flow before a replay engine is built on it. DELETE once the LLM-discovered artifact lands (build step 4). Not a deliverable: provenance.liveLlm is false.",
   "apiVersion": "cua.capability/v1",
   "kind": "Capability",
   "metadata": {
     "id": "account.lookup_balance",
     "version": "1.0.0",
-    "status": "draft",
+    "status": "approved",
     "title": "Look up an account's current balance",
-    "description": "Signs in to the servicing console, opens the accounts overview, and returns the current balance for the given account number."
+    "description": "Signs in to the servicing console, opens the accounts overview, and returns the current balance for the given account number.",
+    "digest": "b3b30ed83f7e7c0c5b827888ab0c58347fc849c0a7b9ada90a57d7f8d5c806d2",
+    "approval": {
+      "digest": "b3b30ed83f7e7c0c5b827888ab0c58347fc849c0a7b9ada90a57d7f8d5c806d2",
+      "approverId": "darsh@band24.com",
+      "approvedAt": "2026-08-18T05:25:41.257Z"
+    }
   },
   "provenance": {
     "discoveryRunId": "handwritten-schema-gate",
@@ -41,6 +46,7 @@
     "outputs": {
       "balance": {
         "type": "money",
+        "required": true,
         "pii": "none",
         "description": "Current balance of the account."
       }
@@ -61,15 +67,13 @@
       "postcondition": {
         "kind": "text_present",
         "text": "Customer Login"
-      }
+      },
+      "timeoutMs": 15000,
+      "maxAttempts": 1
     },
     {
       "id": "s2_username",
       "action": "fill",
-      "value": {
-        "kind": "secret",
-        "ref": "PARABANK_USERNAME"
-      },
       "target": {
         "strategies": [
           {
@@ -87,8 +91,12 @@
             "direction": "below"
           }
         ],
-        "rationale": "The input carries no id, no <label> and no aria-label, so rungs 1 and 2 resolve to zero elements on this app. The bold caption 'Username' immediately above the field is the only stable anchor, and it is what a human operator uses. Rungs 1-2 are retained because a future version may add proper labelling.",
-        "baselineRung": 3
+        "baselineRung": 3,
+        "rationale": "The input carries no id, no <label> and no aria-label, so rungs 1 and 2 resolve to zero elements on this app. The bold caption 'Username' immediately above the field is the only stable anchor, and it is what a human operator uses. Rungs 1-2 are retained because a future version may add proper labelling."
+      },
+      "value": {
+        "kind": "secret",
+        "ref": "operator_username"
       },
       "effect": "idempotent_write",
       "risk": "safe",
@@ -102,18 +110,16 @@
               "direction": "below"
             }
           ],
-          "rationale": "Same control as the fill; asserts it took a value without recording the credential.",
-          "baselineRung": 1
+          "baselineRung": 1,
+          "rationale": "Same control as the fill; asserts it took a value without recording the credential."
         }
-      }
+      },
+      "timeoutMs": 15000,
+      "maxAttempts": 1
     },
     {
       "id": "s3_password",
       "action": "fill",
-      "value": {
-        "kind": "secret",
-        "ref": "PARABANK_PASSWORD"
-      },
       "target": {
         "strategies": [
           {
@@ -131,8 +137,12 @@
             "direction": "below"
           }
         ],
-        "rationale": "Same structure as the username field \u2014 the caption is a sibling <b>, not a label.",
-        "baselineRung": 3
+        "baselineRung": 3,
+        "rationale": "Same structure as the username field — the caption is a sibling <b>, not a label."
+      },
+      "value": {
+        "kind": "secret",
+        "ref": "operator_password"
       },
       "effect": "idempotent_write",
       "risk": "safe",
@@ -146,10 +156,12 @@
               "direction": "below"
             }
           ],
-          "rationale": "Proves the field was filled without writing the secret into the artifact.",
-          "baselineRung": 1
+          "baselineRung": 1,
+          "rationale": "Proves the field was filled without writing the secret into the artifact."
         }
-      }
+      },
+      "timeoutMs": 15000,
+      "maxAttempts": 1
     },
     {
       "id": "s4_signin",
@@ -166,30 +178,29 @@
             "selector": "input[value='Log In']"
           }
         ],
-        "rationale": "The submit control is an <input type=submit>, whose accessible name derives from its value attribute, so rung 1 is expected to hold here even though the text fields have no names. CSS is retained as a last resort and firing it is recorded as drift.",
-        "baselineRung": 1
+        "baselineRung": 1,
+        "rationale": "The submit control is an <input type=submit>, whose accessible name derives from its value attribute, so rung 1 is expected to hold here even though the text fields have no names. CSS is retained as a last resort and firing it is recorded as drift."
       },
       "effect": "idempotent_write",
       "risk": "safe",
-      "timeoutMs": 20000,
       "postcondition": {
         "kind": "text_present",
         "text": "Accounts Overview"
-      }
+      },
+      "timeoutMs": 20000,
+      "maxAttempts": 1
     },
     {
       "id": "s5_await_rows",
       "action": "wait",
       "effect": "observation",
       "risk": "safe",
-      "timeoutMs": 20000,
       "precondition": {
         "kind": "text_present",
         "text": "Accounts Overview"
       },
       "postcondition": {
         "kind": "count_at_least",
-        "n": 1,
         "target": {
           "strategies": [
             {
@@ -197,15 +208,17 @@
               "selector": "#accountTable tbody tr"
             }
           ],
-          "rationale": "The accounts table body is populated by script; the served HTML ships an empty <tbody>. We wait on rows existing rather than on a duration. No semantic locator can express 'the rows of this grid' — accessibility exposes cells and headers, not a container — so CSS is the deliberate first choice here, not a fallback. Baseline 1 records that: this resolving at rung 1 is healthy, and there is no lower rung it could degrade from.",
-          "baselineRung": 1
-        }
-      }
+          "baselineRung": 1,
+          "rationale": "The accounts table body is populated by script; the served HTML ships an empty <tbody>. We wait on rows existing rather than on a duration. No semantic locator can express 'the rows of this grid' — accessibility exposes cells and headers, not a container — so CSS is the deliberate first choice here, not a fallback. Baseline 1 records that: this resolving at rung 1 is healthy, and there is no lower rung it could degrade from."
+        },
+        "n": 1
+      },
+      "timeoutMs": 20000,
+      "maxAttempts": 1
     },
     {
       "id": "s6_read_balance",
       "action": "read",
-      "extractTo": "balance",
       "target": {
         "strategies": [
           {
@@ -214,12 +227,14 @@
             "rowMatch": "${inputs.accountId}"
           }
         ],
-        "rationale": "The column is located by its visible header text and the row by the account number, so neither column order nor row order matters. This is how an operator reads the same value.",
-        "baselineRung": 1
+        "baselineRung": 1,
+        "rationale": "The column is located by its visible header text and the row by the account number, so neither column order nor row order matters. This is how an operator reads the same value."
       },
       "effect": "observation",
       "risk": "safe",
-      "maxAttempts": 3
+      "timeoutMs": 15000,
+      "maxAttempts": 3,
+      "extractTo": "balance"
     }
   ],
   "exceptions": [

@@ -17,7 +17,7 @@ import { parseCapability, type Capability } from "../src/artifact/schema.ts";
 import { approve } from "../src/artifact/digest.ts";
 import { WebDriver } from "../src/surface/web/driver.ts";
 import { replay } from "../src/replay/engine.ts";
-import { parseMoney, validateInputs, ValueError } from "../src/replay/values.ts";
+import { parseMoney, resolveSecret, validateInputs, ValueError } from "../src/replay/values.ts";
 
 const FIXTURE = "capabilities/account.lookup_balance.handwritten.json";
 const load = (): Capability =>
@@ -26,9 +26,10 @@ const load = (): Capability =>
 const evidenceRoot = mkdtempSync(join(tmpdir(), "cua-evidence-"));
 let driver: WebDriver;
 
-// The artifact references these by name only; the values never enter it.
-process.env.PARABANK_USERNAME ??= "john";
-process.env.PARABANK_PASSWORD ??= "demo";
+// The artifact names a logical role; the deployment binds it. Nothing about this
+// institution appears in the artifact.
+process.env.OPERATOR_USERNAME ??= "john";
+process.env.OPERATOR_PASSWORD ??= "demo";
 
 const run = (inputs: Record<string, string>, artifact = approve(load(), "test@local")) =>
   replay({ artifact, inputs, driver, evidenceRoot });
@@ -132,6 +133,54 @@ test("replay is deterministic across runs", async () => {
     b.trace.map((t) => [t.stepId, t.resolvedRung]),
     "same inputs, same steps, same rungs",
   );
+});
+
+// --- credentials are a runtime binding, not a capability input ------------
+
+test("no credential is a declared input, and none is persisted", async () => {
+  const a = load();
+  // If a credential were an input it would land in shell history, the result
+  // contract, logs and evidence. It is not in the contract at all.
+  assert.deepEqual(Object.keys(a.signature.inputs), ["accountId"]);
+
+  const result = await run({ accountId: "13122" });
+  const persisted = readFileSync(join(result.evidenceDir, "result.json"), "utf8");
+  assert.doesNotMatch(persisted, /john|demo/i);
+});
+
+test("the artifact names a logical role, not an institution or a variable", () => {
+  const refs = load().steps
+    .filter((s) => s.value?.kind === "secret")
+    .map((s) => (s.value as { ref: string }).ref);
+
+  assert.deepEqual(refs, ["operator_username", "operator_password"]);
+  // Baking SUMMIT_PASSWORD into the artifact would make it tenant-specific, so
+  // reusing it would require an edit — invalidating the digest and forcing
+  // re-approval for what is purely deployment configuration.
+  for (const ref of refs) {
+    assert.doesNotMatch(ref, /parabank|summit/i);
+  }
+});
+
+test("a tenant-scoped credential wins over the shared default", () => {
+  process.env.SUMMIT_OPERATOR_PASSWORD = "tenant-specific";
+  try {
+    assert.equal(resolveSecret("operator_password", "summit"), "tenant-specific");
+    assert.equal(resolveSecret("operator_password", null), "demo");
+    // Falls back to the shared credential when the tenant has none of its own.
+    assert.equal(resolveSecret("operator_username", "summit"), "john");
+  } finally {
+    delete process.env.SUMMIT_OPERATOR_PASSWORD;
+  }
+});
+
+test("an unbound credential names the variables it looked for, never a value", () => {
+  try {
+    resolveSecret("wire_approval_pin", "summit");
+    assert.fail("expected a rejection");
+  } catch (e) {
+    assert.match((e as Error).message, /SUMMIT_WIRE_APPROVAL_PIN, WIRE_APPROVAL_PIN/);
+  }
 });
 
 // --- the one the brief singles out ----------------------------------------

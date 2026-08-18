@@ -166,7 +166,7 @@ export async function replay(opts: ReplayOptions): Promise<ReplayResult> {
             entryTrace.strategy = res.strategy.kind;
             entryTrace.drift = classifyDrift(step.target.baselineRung, res.rung);
           }
-          await perform(step, driver, inputs);
+          await perform(step, driver, inputs, tenant);
           satisfied = step.postcondition
             ? await waitFor(ctx, step.postcondition, step.timeoutMs)
             : true;
@@ -324,7 +324,7 @@ export async function replay(opts: ReplayOptions): Promise<ReplayResult> {
         // Permitted only when nothing before this point committed — checked above.
         await driver.act({ action: "navigate", url: entry });
         for (const s of artifact.steps.slice(0, index)) {
-          await perform(s, driver, inputs).catch(() => undefined);
+          await perform(s, driver, inputs, tenant).catch(() => undefined);
         }
         return;
       }
@@ -336,6 +336,7 @@ async function perform(
   step: Step,
   driver: SurfaceDriver,
   inputs: Record<string, string>,
+  tenant: string | null,
 ): Promise<void> {
   switch (step.action) {
     case "navigate":
@@ -347,15 +348,15 @@ async function perform(
     case "read":
       return; // purely observational — the postcondition does the work
     case "fill":
-      return driver.act({ action: "fill", target: step.target!, value: valueOf(step, inputs) });
+      return driver.act({ action: "fill", target: step.target!, value: valueOf(step, inputs, tenant) });
     case "select":
-      return driver.act({ action: "select", target: step.target!, value: valueOf(step, inputs) });
+      return driver.act({ action: "select", target: step.target!, value: valueOf(step, inputs, tenant) });
     case "click":
       return driver.act({ action: "click", target: step.target! });
   }
 }
 
-function valueOf(step: Step, inputs: Record<string, string>): string {
+function valueOf(step: Step, inputs: Record<string, string>, tenant: string | null): string {
   const v = step.value;
   if (!v) throw new ValueError(`step '${step.id}' is a ${step.action} with no value`);
   switch (v.kind) {
@@ -365,7 +366,7 @@ function valueOf(step: Step, inputs: Record<string, string>): string {
       if (found === undefined) throw new ValueError(`step '${step.id}' needs input '${v.name}'`);
       return found;
     }
-    case "secret": return resolveSecret(v.ref);
+    case "secret": return resolveSecret(v.ref, tenant);
   }
 }
 

@@ -23,6 +23,10 @@ export interface WebDriverOptions {
   /** Run parameters, so locators may interpolate `${inputs.*}`. */
   inputs?: Record<string, string>;
   viewport?: { width: number; height: number };
+  /** Delay between actions, for demonstrations. Not used in tests. */
+  slowMoMs?: number;
+  /** Record the session to this directory; the file lands on close(). */
+  videoDir?: string;
 }
 
 export class WebDriver implements SurfaceDriver {
@@ -43,12 +47,22 @@ export class WebDriver implements SurfaceDriver {
 
   async launch(): Promise<Page> {
     if (this.page) return this.page;
-    this.browser = await chromium.launch({ headless: !this.opts.headed });
+    const viewport = this.opts.viewport ?? { width: 1280, height: 900 };
+    this.browser = await chromium.launch({
+      headless: !this.opts.headed,
+      slowMo: this.opts.slowMoMs,
+    });
     this.context = await this.browser.newContext({
-      viewport: this.opts.viewport ?? { width: 1280, height: 900 },
+      viewport,
+      ...(this.opts.videoDir ? { recordVideo: { dir: this.opts.videoDir, size: viewport } } : {}),
     });
     this.page = await this.context.newPage();
     return this.page;
+  }
+
+  /** Path of the recorded video, available only after close(). */
+  async videoPath(): Promise<string | null> {
+    return (await this.page?.video()?.path()) ?? null;
   }
 
   /** Exposed for the handoff seam: a human drives this exact page. */
