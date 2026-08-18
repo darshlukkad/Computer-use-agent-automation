@@ -3,7 +3,12 @@
  * Operator entry point. Thin on purpose — it parses flags and prints results; every
  * decision lives in the modules it calls.
  */
-import { loadCapability, listCapabilities, saveCapability } from "./artifact/store.ts";
+import { writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { loadCapability, listCapabilities, saveCapability, CAPABILITY_DIR } from "./artifact/store.ts";
+import { discover } from "./discovery/loop.ts";
+import { compile } from "./discovery/compile.ts";
+import { modelFromEnv } from "./discovery/model.ts";
 import { approve } from "./artifact/digest.ts";
 import { WebDriver } from "./surface/web/driver.ts";
 import { replay } from "./replay/engine.ts";
@@ -16,7 +21,24 @@ function flag(name: string): string | undefined {
 }
 const has = (name: string): boolean => process.argv.includes(`--${name}`);
 
+/** Repeatable flags: --param a=1 --param b=2 */
+function pairs(name: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  process.argv.forEach((arg, i) => {
+    if (arg !== `--${name}`) return;
+    const [k, ...rest] = (process.argv[i + 1] ?? "").split("=");
+    if (k && rest.length) out[k] = rest.join("=");
+  });
+  return out;
+}
+function repeated(name: string): string[] {
+  return process.argv.flatMap((arg, i) => (arg === `--${name}` ? [process.argv[i + 1] ?? ""] : []));
+}
+
 const USAGE = `
+  discover --goal '<text>' --id <capability> --entry <url>
+           [--param k=v ...] [--credential <role> ...] [--headed] [--slow <ms>]
+           [--max-turns <n>] [--vendor <v>] [--product <p>]
   replay   --id <capability> --input '<json>' [--headed] [--slow <ms>] [--video <dir>]
            [--tenant <name>] [--unapproved]
   approve  --id <capability> --approver <who>
@@ -48,6 +70,64 @@ async function main(): Promise<number> {
     console.log(`  digest   ${approved.metadata.digest}`);
     console.log(`  approver ${approver}`);
     console.log(`\nAny edit to ${stored.path} now invalidates this approval.`);
+    return 0;
+  }
+
+  if (command === "discover") {
+    const goal = required("goal");
+    const id = required("id");
+    const entry = required("entry");
+    const params = pairs("param");
+    // The goal the model reads has parameter values substituted in, so it never sees
+    // a placeholder — and the compiler still knows which literal came from where.
+    const renderedGoal = Object.entries(params).reduce(
+      (g, [k, v]) => g.replaceAll(`{{${k}}}`, v),
+      goal,
+    );
+
+    const model = await modelFromEnv();
+    const driver = new WebDriver({
+      headed: has("headed"),
+      slowMoMs: flag("slow") ? Number(flag("slow")) : undefined,
+    });
+    await driver.launch();
+
+    console.log(`discovering with ${model.id}`);
+    console.log(`  goal   ${renderedGoal}`);
+    console.log(`  entry  ${entry}\n`);
+
+    const run = await discover({
+      goal: renderedGoal, params, entryUrl: entry, driver, model,
+      maxTurns: flag("max-turns") ? Number(flag("max-turns")) : undefined,
+    });
+    await driver.close();
+
+    console.log(`\n${run.status.toUpperCase()} after ${run.trace.length} turns, ${run.modelCalls} model calls`);
+    console.log(`  ${run.stopReason}`);
+    for (const t of run.trace) {
+      const rung = t.target ? ` rung ${t.target.resolvedRung}` : "";
+      const mark = t.outcome === "ok" ? " " : "!";
+      console.log(`  ${mark} ${String(t.turn).padStart(2)} ${t.action.kind.padEnd(7)}${rung.padEnd(8)} ${t.thought.slice(0, 70)}`);
+    }
+    console.log(`\n  evidence: ${run.evidenceDir}`);
+    if (run.status !== "success") return 1;
+
+    const artifact = compile({
+      run, capabilityId: id,
+      title: flag("title") ?? renderedGoal,
+      description: flag("description") ?? `Discovered from a live run against ${new URL(entry).host}.`,
+      vendor: flag("vendor") ?? "unknown",
+      product: flag("product") ?? "unknown",
+      versionRange: flag("version-range") ?? ">=0.0.0",
+      originAllowlist: [new URL(entry).origin],
+      entryPath: new URL(entry).pathname + new URL(entry).search,
+      credentials: repeated("credential"),
+    });
+
+    const path = join(CAPABILITY_DIR, `${id}.json`);
+    writeFileSync(path, `${JSON.stringify(artifact, null, 2)}\n`);
+    console.log(`  compiled: ${path}  (${artifact.steps.length} steps, status ${artifact.metadata.status})`);
+    console.log(`\nApprove it before unattended replay:\n  npm run approve -- --id ${id} --approver you@example.com`);
     return 0;
   }
 
