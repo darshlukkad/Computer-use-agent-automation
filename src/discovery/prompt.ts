@@ -78,6 +78,7 @@ export function renderObservation(o: Observation): string {
           if (n.columnHeader) parts.push(`columnHeader=${JSON.stringify(n.columnHeader)}`);
           if (n.rowLabel) parts.push(`rowLabel=${JSON.stringify(n.rowLabel)}`);
           if (n.value) parts.push(`value=${JSON.stringify(n.value)}`);
+          if (n.options?.length) parts.push(`options=[${n.options.join(", ")}]`);
           if (n.frame) parts.push(`frame=${JSON.stringify(n.frame)}`);
           return `  - ${parts.join(" ")}`;
         })
@@ -91,12 +92,69 @@ export function renderObservation(o: Observation): string {
   // The page's own text is fenced and labelled untrusted. This is a mitigation, not a
   // guarantee: a model can still be talked out of a rule. The real protections are the
   // action allowlist, and that replay consults no model at all.
-  return `Controls on screen:
+  return `Screen: ${screenOf(o)}
+
+Controls on screen:
 ${controls}${dialogs}
 
 --- begin untrusted application content ---
-${o.text}
+${remainingText(o)}
 --- end untrusted application content ---`;
+}
+
+/**
+ * Which screen this is, from the path and title.
+ *
+ * The observation always carried the URL and the prompt never passed it on, so the
+ * model was inferring its location purely from body text. Two screens sharing wording
+ * would have been indistinguishable. The session id is stripped: this app rewrites a
+ * jsessionid into every path, and a value that changes every run is noise the model
+ * would have to learn to ignore.
+ */
+function screenOf(o: Observation): string {
+  let path = o.url;
+  try {
+    path = new URL(o.url).pathname;
+  } catch { /* a non-absolute url is still worth showing as-is */ }
+  path = path.split(";")[0]!;
+  return o.title ? `${path} — ${o.title}` : path;
+}
+
+/**
+ * Page text with the lines the control list already covers removed.
+ *
+ * Roughly 40% of a turn was the same nav and footer labels twice: once as controls,
+ * once as prose. That is cost and distraction on every call, and the duplicate adds
+ * nothing — a link named "Transfer Funds" is not clearer for also appearing as a line
+ * of text. What remains is the text that is genuinely only text: readings, messages,
+ * and anything the harvester did not classify.
+ */
+function remainingText(o: Observation): string {
+  // Separators travel with the text a page renders — a footer emits "Home |" — so
+  // comparing raw lines leaves every one of them behind as apparent new content.
+  const key = (s: string): string => s.replace(/^[\s|·•>–—-]+|[\s|·•<–—-]+$/g, "").trim();
+
+  const covered = new Set<string>();
+  for (const n of o.nodes) {
+    if (n.name) covered.add(key(n.name));
+    if (n.value) covered.add(key(n.value));
+    // A caption is already attached to the control it labels, so repeating it as a
+    // free-floating line only invites the model to treat it as separate content.
+    if (n.nearbyText) covered.add(key(n.nearbyText));
+    if (n.columnHeader) covered.add(key(n.columnHeader));
+    if (n.rowLabel) covered.add(key(n.rowLabel));
+    for (const opt of n.options ?? []) covered.add(key(opt));
+  }
+
+  const kept: string[] = [];
+  for (const line of o.text.split("\n")) {
+    const k = key(line);
+    if (!k || covered.has(k)) continue;
+    // A page can repeat the same line in several places; once is enough.
+    covered.add(k);
+    kept.push(k);
+  }
+  return kept.length ? kept.join("\n") : "(nothing beyond the controls listed above)";
 }
 
 export function renderGoal(

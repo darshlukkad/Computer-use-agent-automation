@@ -30,6 +30,14 @@ export interface AxNode {
   columnHeader?: string;
   /** For a cell in a table: the leading cell of its row, which identifies the record. */
   rowLabel?: string;
+  /**
+   * For a dropdown: what can be chosen, capped.
+   *
+   * A combobox whose options are unknown cannot be used — the caller has to guess a
+   * value and hope. Reporting them also removes the option text from the page-text
+   * dump, where it otherwise appeared once per dropdown as unattributed lines.
+   */
+  options?: string[];
   /** Frame name or url; legacy apps put real content inside framesets. */
   frame?: string;
 }

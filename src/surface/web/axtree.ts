@@ -187,6 +187,11 @@ export const HARVEST_FN = `function (maxNodes) {
       if (paraText.length < 10 || paraText.length > 200) continue;
       /* A paragraph wrapping another paragraph is a container, not a statement. */
       if (el.querySelector("p")) continue;
+      /* Chrome, not content. A tagline and a copyright notice are on every screen and
+         are never the value anyone came for, so listing them as readable spends
+         context on every turn and invites a wrong read. */
+      if (el.closest("#topPanel, #headerPanel, #footerPanel, footer, header, nav")) continue;
+      if (/^©|\\ball rights reserved\\b/i.test(paraText)) continue;
       paragraphs++;
     }
 
@@ -209,6 +214,16 @@ export const HARVEST_FN = `function (maxNodes) {
       if (type !== "password" && el.value) node.value = String(el.value).slice(0, 80);
     } else if (tag === "SELECT") {
       node.value = String(el.value || "").slice(0, 80);
+      /* What can be chosen. A dropdown with unknown options forces a guess. */
+      var opts = [];
+      for (var o = 0; o < el.options.length && o < 12; o++) {
+        var optText = (el.options[o].textContent || "").replace(/\\s+/g, " ").trim();
+        if (optText) opts.push(optText.slice(0, 40));
+      }
+      if (opts.length) {
+        node.options = opts;
+        if (el.options.length > 12) node.options.push("… " + (el.options.length - 12) + " more");
+      }
     } else if (role === "cell" || role === "paragraph") {
       node.value = (el.textContent || "").replace(/\\s+/g, " ").trim().slice(0, 200);
       /* A cell in a table needs coordinates, not a neighbour. Anchoring on the
