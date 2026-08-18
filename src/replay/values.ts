@@ -25,10 +25,66 @@ export function parseMoney(text: string, currency = "USD"): Money {
   return { currency, minorUnits: negative ? -minorUnits : minorUnits };
 }
 
+const SYMBOL: Record<string, string> = { USD: "$", EUR: "€", GBP: "£" };
+
 export function formatMoney(m: Money): string {
   const sign = m.minorUnits < 0 ? "-" : "";
   const abs = Math.abs(m.minorUnits);
-  return `${sign}${(abs / 100).toFixed(2)} ${m.currency}`;
+  const whole = Math.floor(abs / 100).toLocaleString("en-US");
+  const cents = String(abs % 100).padStart(2, "0");
+  const symbol = SYMBOL[m.currency];
+  return symbol
+    ? `${sign}${symbol}${whole}.${cents}`
+    : `${sign}${whole}.${cents} ${m.currency}`;
+}
+
+function isMoney(v: unknown): v is Money {
+  return typeof v === "object" && v !== null && "minorUnits" in v && "currency" in v;
+}
+
+function display(v: unknown): string {
+  if (isMoney(v)) return formatMoney(v);
+  return typeof v === "string" ? v : JSON.stringify(v);
+}
+
+/**
+ * Render an answer template. Only `${inputs.*}` and `${outputs.*}` are substituted;
+ * an unknown reference is left visible rather than silently becoming "undefined",
+ * so a broken template shows up in review instead of shipping a sentence with a
+ * hole in it.
+ */
+export function renderAnswer(
+  template: string,
+  scope: { inputs: Record<string, string>; outputs?: Record<string, unknown> },
+): string {
+  return template.replace(
+    /\$\{(inputs|outputs)\.([A-Za-z_][A-Za-z0-9_]*)\}/g,
+    (whole, bucket: string, key: string) => {
+      const source = bucket === "inputs" ? scope.inputs : scope.outputs ?? {};
+      return key in source ? display(source[key]) : whole;
+    },
+  );
+}
+
+/**
+ * Mask values of fields the artifact tagged as regulated before an answer is
+ * written to disk. The caller gets the real sentence; the evidence file gets a
+ * fingerprint, so a run stays debuggable without persisting an account number.
+ *
+ * This is what makes the `pii` tags load-bearing rather than decorative.
+ */
+export function redactAnswer(
+  answer: string,
+  inputs: Record<string, string>,
+  spec: Record<string, { pii?: string }>,
+): string {
+  let out = answer;
+  for (const [name, value] of Object.entries(inputs)) {
+    const pii = spec[name]?.pii;
+    if (!value || pii === "none" || pii === undefined) continue;
+    out = out.split(value).join(`[${name}:redacted]`);
+  }
+  return out;
 }
 
 /** Values enter the browser as strings; this is the sole conversion point. */

@@ -17,11 +17,24 @@ import { parseCapability, type Capability } from "../src/artifact/schema.ts";
 import { approve } from "../src/artifact/digest.ts";
 import { WebDriver } from "../src/surface/web/driver.ts";
 import { replay } from "../src/replay/engine.ts";
-import { parseMoney, resolveSecret, validateInputs, ValueError } from "../src/replay/values.ts";
+import {
+  parseMoney, renderAnswer, resolveSecret, validateInputs, ValueError,
+} from "../src/replay/values.ts";
 
 const FIXTURE = "capabilities/account.lookup_balance.handwritten.json";
-const load = (): Capability =>
-  parseCapability(JSON.parse(readFileSync(FIXTURE, "utf8")));
+/**
+ * Normalised to draft so tests do not depend on whether someone has run
+ * `cli approve` against the fixture on disk. Anything needing an approved artifact
+ * approves it explicitly.
+ */
+const load = (): Capability => {
+  const raw = JSON.parse(readFileSync(FIXTURE, "utf8")) as Record<string, unknown>;
+  const meta = raw.metadata as Record<string, unknown>;
+  delete meta.digest;
+  delete meta.approval;
+  meta.status = "draft";
+  return parseCapability(raw);
+};
 
 const evidenceRoot = mkdtempSync(join(tmpdir(), "cua-evidence-"));
 let driver: WebDriver;
@@ -132,6 +145,54 @@ test("replay is deterministic across runs", async () => {
     a.trace.map((t) => [t.stepId, t.resolvedRung]),
     b.trace.map((t) => [t.stepId, t.resolvedRung]),
     "same inputs, same steps, same rungs",
+  );
+});
+
+// --- the capability states its own result ---------------------------------
+
+test("success carries the answer in plain language, from the artifact's template", async () => {
+  const result = await run({ accountId: "13122" });
+  assert.equal(result.status, "success");
+  if (result.status !== "success") return;
+
+  // Phrasing belongs to the capability, not to the caller: an agent relaying this
+  // to a member should not have to invent wording, and the wording is reviewable
+  // in the same diff as the flow.
+  assert.equal(result.answer, "The current balance for account 13122 is $1,100.00.");
+  // The sentence is not a substitute for the data.
+  assert.deepEqual(result.outputs.balance, { currency: "USD", minorUnits: 110000 });
+});
+
+test("a business outcome states itself too", async () => {
+  const result = await run({ accountId: "99999" });
+  assert.equal(result.status, "business_outcome");
+  if (result.status !== "business_outcome") return;
+
+  assert.match(result.answer ?? "", /No account 99999 is visible/);
+  // A caller still branches on the code, never on the prose.
+  assert.equal(result.code, "ACCOUNT_NOT_FOUND");
+});
+
+test("the answer reaches the caller but the identifier never reaches disk", async () => {
+  const result = await run({ accountId: "13122" });
+  assert.match(result.status === "success" ? result.answer ?? "" : "", /13122/);
+
+  // An answer necessarily embeds the identifier it was asked about, and §3.4
+  // forbids persisting that. The pii tag on accountId is what drives the mask, so
+  // this is the test that makes those tags load-bearing rather than decorative.
+  const persisted = readFileSync(join(result.evidenceDir, "result.json"), "utf8");
+  assert.doesNotMatch(persisted, /13122/);
+  assert.match(persisted, /\[accountId:redacted\]/);
+});
+
+test("a template referencing something unknown stays visible", () => {
+  // Better a placeholder a reviewer notices than a sentence reading "undefined".
+  assert.equal(
+    renderAnswer("Balance is ${outputs.missing} for ${inputs.accountId}.", {
+      inputs: { accountId: "13122" },
+      outputs: {},
+    }),
+    "Balance is ${outputs.missing} for 13122.",
   );
 });
 

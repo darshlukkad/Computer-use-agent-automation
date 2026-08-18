@@ -84,6 +84,13 @@ export type ReplayResult =
   | (Base & {
       status: "success";
       outputs: Record<string, unknown>;
+      /**
+       * The result in plain language, rendered from the artifact's own template.
+       * Present so a calling agent has something to relay to a member without
+       * inventing phrasing of its own. Typed `outputs` remain the data; this is
+       * the sentence. Absent when the artifact declares no template.
+       */
+      answer?: string;
       recoveries: Recovery[];
       trace: StepTrace[];
     })
@@ -94,6 +101,8 @@ export type ReplayResult =
   | (Base & {
       status: "business_outcome";
       code: string;
+      /** Same as above: the outcome stated for a person, from the rule's template. */
+      answer?: string;
       observed: string;
       recoveries: Recovery[];
       trace: StepTrace[];

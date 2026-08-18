@@ -7,11 +7,11 @@
     "status": "approved",
     "title": "Look up an account's current balance",
     "description": "Signs in to the servicing console, opens the accounts overview, and returns the current balance for the given account number.",
-    "digest": "b3b30ed83f7e7c0c5b827888ab0c58347fc849c0a7b9ada90a57d7f8d5c806d2",
+    "digest": "94cc8918b6d937ccb9f9ebc81db3fe3347d84ace858b8edae7d6135135898f4d",
     "approval": {
-      "digest": "b3b30ed83f7e7c0c5b827888ab0c58347fc849c0a7b9ada90a57d7f8d5c806d2",
+      "digest": "94cc8918b6d937ccb9f9ebc81db3fe3347d84ace858b8edae7d6135135898f4d",
       "approverId": "darsh@band24.com",
-      "approvedAt": "2026-08-18T05:25:41.257Z"
+      "approvedAt": "2026-08-18T18:02:18.269Z"
     }
   },
   "provenance": {
@@ -255,6 +255,7 @@
       },
       "class": "business_outcome",
       "code": "ACCOUNT_NOT_FOUND",
+      "answer": "No account ${inputs.accountId} is visible to this operator, so no balance could be read.",
       "verified": false
     },
     {
@@ -277,6 +278,7 @@
       "recover": {
         "strategy": "re_login"
       },
+      "answer": "The servicing session expired before the balance could be read.",
       "verified": false
     }
   ],
@@ -299,6 +301,7 @@
         "output": "balance",
         "from": "s6_read_balance"
       }
-    ]
+    ],
+    "answer": "The current balance for account ${inputs.accountId} is ${outputs.balance}."
   }
 }

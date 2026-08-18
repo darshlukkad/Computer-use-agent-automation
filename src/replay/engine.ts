@@ -18,7 +18,9 @@ import { classifyDrift, isRetrySafe } from "../result/types.ts";
 import { TargetAmbiguous, TargetMissing, type SurfaceDriver } from "../surface/driver.ts";
 import { EvalContext, describe, waitFor } from "./conditions.ts";
 import { classify, recoveryPermitted } from "./classify.ts";
-import { resolveSecret, validateInputs, validateOutputs, ValueError } from "./values.ts";
+import {
+  redactAnswer, renderAnswer, resolveSecret, validateInputs, validateOutputs, ValueError,
+} from "./values.ts";
 
 export interface ReplayOptions {
   artifact: Capability;
@@ -68,9 +70,22 @@ export async function replay(opts: ReplayOptions): Promise<ReplayResult> {
     tenant,
     evidenceDir,
   };
+  /**
+   * The caller gets the real result; the evidence file gets a copy with any value
+   * the artifact tagged as regulated masked out. An answer sentence necessarily
+   * embeds the identifier it was asked about, and §3.4 forbids persisting that — so
+   * the run stays debuggable without an account number landing on disk.
+   */
   const done = (r: PartialResult): ReplayResult => {
     const result = { ...r, durationMs: Date.now() - started } as ReplayResult;
-    writeFileSync(join(evidenceDir, "result.json"), `${JSON.stringify(result, null, 2)}\n`);
+    const persisted =
+      "answer" in result && result.answer
+        ? {
+            ...result,
+            answer: redactAnswer(result.answer, opts.inputs, artifact.signature.inputs),
+          }
+        : result;
+    writeFileSync(join(evidenceDir, "result.json"), `${JSON.stringify(persisted, null, 2)}\n`);
     return result;
   };
 
@@ -225,7 +240,10 @@ export async function replay(opts: ReplayOptions): Promise<ReplayResult> {
     }
 
     const outputs = validateOutputs(artifact.signature.outputs, extracted);
-    return done({ ...base, status: "success", outputs, recoveries, trace });
+    const answer = artifact.success.answer
+      ? renderAnswer(artifact.success.answer, { inputs, outputs })
+      : undefined;
+    return done({ ...base, status: "success", outputs, answer, recoveries, trace });
   } catch (e) {
     if (e instanceof ValueError) {
       return done({
@@ -262,6 +280,9 @@ export async function replay(opts: ReplayOptions): Promise<ReplayResult> {
       return done({
         ...base, status: "business_outcome",
         code: verdict.code, observed: verdict.observed,
+        answer: verdict.rule.answer
+          ? renderAnswer(verdict.rule.answer, { inputs })
+          : undefined,
         recoveries, trace,
       });
     }

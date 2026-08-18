@@ -103,6 +103,9 @@ function report(r: ReplayResult): void {
   switch (r.status) {
     case "success":
       console.log(`SUCCESS in ${r.durationMs}ms`);
+      // The sentence first, because it is the thing a person actually asked for;
+      // the typed outputs below it are what a calling agent consumes.
+      if (r.answer) console.log(`\n  ${r.answer}\n`);
       for (const [k, v] of Object.entries(r.outputs)) {
         const shown = isMoney(v) ? formatMoney(v) : JSON.stringify(v);
         console.log(`  ${k} = ${shown}`);
@@ -115,6 +118,7 @@ function report(r: ReplayResult): void {
     case "business_outcome":
       // Not an error. The automation worked; the answer is negative.
       console.log(`BUSINESS OUTCOME: ${r.code}`);
+      if (r.answer) console.log(`\n  ${r.answer}\n`);
       console.log(`  observed: ${r.observed.slice(0, 160)}`);
       break;
 

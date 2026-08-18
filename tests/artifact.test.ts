@@ -15,7 +15,19 @@ import { approve, verifyApproval, artifactDigest, canonicalJson } from "../src/a
 import { classifyDrift } from "../src/result/types.ts";
 
 const FIXTURE = "capabilities/account.lookup_balance.handwritten.json";
-const load = (): Capability => parseCapability(JSON.parse(readFileSync(FIXTURE, "utf8")));
+/**
+ * Normalised to draft so tests do not depend on whether someone has run
+ * `cli approve` against the fixture on disk. Anything needing an approved artifact
+ * approves it explicitly.
+ */
+const load = (): Capability => {
+  const raw = JSON.parse(readFileSync(FIXTURE, "utf8")) as Record<string, unknown>;
+  const meta = raw.metadata as Record<string, unknown>;
+  delete meta.digest;
+  delete meta.approval;
+  meta.status = "draft";
+  return parseCapability(raw);
+};
 /** Structured clone so a mutation in one test cannot leak into another. */
 const clone = (a: Capability): Capability => JSON.parse(JSON.stringify(a)) as Capability;
 

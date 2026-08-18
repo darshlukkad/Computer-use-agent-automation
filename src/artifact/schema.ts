@@ -196,6 +196,11 @@ export const ExceptionRule = z.object({
   code: z.string().regex(/^[A-Z][A-Z0-9_]*$/),
   recover: RecoveryPlan.optional(),
   /**
+   * How to say this outcome to a person. Same templating as `success.answer`.
+   * A calling agent still branches on `code`; this is the sentence it can relay.
+   */
+  answer: z.string().optional(),
+  /**
    * False when the compiler PREDICTED this branch from a happy-path run without ever
    * observing it; true once a real run has hit it. An unverified rule is a guess, and
    * a caller relying on the code deserves to know that.
@@ -296,6 +301,16 @@ export const Capability = z.object({
   success: z.object({
     checkpoint: Condition,
     extract: z.array(Extraction).default([]),
+    /**
+     * The result stated in plain language, for a person or for an agent relaying it
+     * to one. Interpolates `${inputs.*}` and `${outputs.*}`.
+     *
+     * This belongs in the artifact rather than in a caller, because how a capability
+     * phrases its result is part of what it promises — and it is reviewable here
+     * alongside the flow, in the same diff. A caller still branches on typed
+     * outputs; this is the sentence, not the data.
+     */
+    answer: z.string().optional(),
   }),
 });
 export type Capability = z.infer<typeof Capability>;
