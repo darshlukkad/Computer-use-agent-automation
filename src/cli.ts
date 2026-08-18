@@ -53,7 +53,7 @@ const USAGE = `
   discover --goal '<natural language>' --id <capability> --entry <url>
            [--param k=v ...] [--output <name>:<type> ...]   (inferred if omitted)
            [--credential <role> ...] [--headed] [--slow <ms>]
-           [--max-turns <n>] [--vendor <v>] [--product <p>]
+           [--max-turns <n>] [--vendor <v>] [--product <p>] [--risk <class>]
   replay   --id <capability> --input '<json>' [--headed] [--slow <ms>] [--video <dir>]
            [--tenant <name>] [--unapproved]
   approve  --id <capability> --approver <who>
@@ -178,6 +178,7 @@ async function main(): Promise<number> {
       originAllowlist: [new URL(entry).origin],
       entryPath: new URL(entry).pathname + new URL(entry).search,
       requiredOutputs,
+      ...(flag("risk") ? { risk: flag("risk") as "safe" | "reversible" | "irreversible" } : {}),
     });
 
     const path = join(CAPABILITY_DIR, `${id}.json`);

@@ -24,11 +24,16 @@
 /** Returns AxNode[]. Takes a node cap. */
 export const HARVEST_FN = `function (maxNodes) {
   var INTERESTING = ["button","link","textbox","searchbox","combobox","checkbox",
-                     "radio","heading","alert","alertdialog","dialog","status","cell"];
+                     "radio","heading","alert","alertdialog","dialog","status","cell",
+                     "paragraph"];
   /* Cells are capped separately: a data table would otherwise crowd out everything
      else, and only a handful of cells are ever the value someone wants. */
   var MAX_CELLS = 40;
   var cells = 0;
+  /* Paragraphs are capped harder than cells: most pages are mostly prose, and only a
+     few sentences are ever a value someone wants. */
+  var MAX_PARAGRAPHS = 12;
+  var paragraphs = 0;
 
   function implicitRole(el) {
     var explicit = el.getAttribute("role");
@@ -45,6 +50,11 @@ export const HARVEST_FN = `function (maxNodes) {
        header row, so a walker that only reports interactive controls cannot see the
        number an operator is looking straight at. */
     if (tag === "td") return "cell";
+    /* A value is not always in a control. A confirmation reads as a sentence —
+       "$25.00 has been transferred from account #13344 to account #12456." — with no
+       input, no cell and no caption of its own, so it is addressable only as the text
+       under the heading that introduces it. */
+    if (tag === "p") return "paragraph";
     if (tag === "input") {
       var t = (el.getAttribute("type") || "text").toLowerCase();
       if (t === "submit" || t === "button" || t === "reset" || t === "image") return "button";
@@ -122,7 +132,11 @@ export const HARVEST_FN = `function (maxNodes) {
     while ((node = walker.nextNode())) {
       if (el.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING) break;
       var t = (node.textContent || "").replace(/\\s+/g, " ").trim();
-      if (t && /[A-Za-z]/.test(t)) best = t;
+      if (!t || !/[A-Za-z]/.test(t)) continue;
+      /* Text inside a hidden template is not a caption anyone reads, and offering it
+         as one hands the model an anchor that cannot be resolved. */
+      if (!visible(node.parentElement)) continue;
+      best = t;
     }
     return best.slice(0, 80);
   }
@@ -166,6 +180,16 @@ export const HARVEST_FN = `function (maxNodes) {
     if (INTERESTING.indexOf(role) === -1) continue;
     if (!visible(el)) continue;
 
+    if (role === "paragraph") {
+      if (paragraphs >= MAX_PARAGRAPHS) continue;
+      var paraText = (el.textContent || "").replace(/\\s+/g, " ").trim();
+      /* Too short to be a statement, or long enough to be a page of prose. */
+      if (paraText.length < 10 || paraText.length > 200) continue;
+      /* A paragraph wrapping another paragraph is a container, not a statement. */
+      if (el.querySelector("p")) continue;
+      paragraphs++;
+    }
+
     if (role === "cell") {
       if (cells >= MAX_CELLS) continue;
       var cellText = (el.textContent || "").replace(/\\s+/g, " ").trim();
@@ -185,8 +209,8 @@ export const HARVEST_FN = `function (maxNodes) {
       if (type !== "password" && el.value) node.value = String(el.value).slice(0, 80);
     } else if (tag === "SELECT") {
       node.value = String(el.value || "").slice(0, 80);
-    } else if (role === "cell") {
-      node.value = (el.textContent || "").replace(/\\s+/g, " ").trim().slice(0, 80);
+    } else if (role === "cell" || role === "paragraph") {
+      node.value = (el.textContent || "").replace(/\\s+/g, " ").trim().slice(0, 200);
       /* A cell in a table needs coordinates, not a neighbour. Anchoring on the
          nearest preceding text gives the cell to its left, which in a data table is
          a different row's value — so report the column header and the row's leading
@@ -204,7 +228,7 @@ export const HARVEST_FN = `function (maxNodes) {
        same misleading string for every cell in the body — and on a live run the model
        trusted it and read one account's number as another account's balance. */
     var hasCoords = role === "cell" && node.columnHeader && node.rowLabel;
-    if ((!name || role === "cell") && !hasCoords) {
+    if ((!name || role === "cell" || role === "paragraph") && !hasCoords) {
       var near = nearbyText(el);
       if (near) node.nearbyText = near;
     }

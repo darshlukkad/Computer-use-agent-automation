@@ -285,7 +285,7 @@ export async function discover(opts: DiscoverOptions): Promise<DiscoveryRun> {
 
       // Report the failure back and let the model reconsider. This is where a real run
       // gets messy, and the mess is kept in the evidence rather than smoothed away.
-      observation = await driver.observe();
+      observation = await settle(driver, observation, 1500);
       history.push({
         role: "user",
         text: renderResult(`That action failed: ${entry.detail}`, observation),
@@ -293,10 +293,15 @@ export async function discover(opts: DiscoverOptions): Promise<DiscoveryRun> {
       continue;
     }
 
+    // Wait for the screen to actually change before looking at it. Replay waits on a
+    // declared condition; discovery has none yet, so it waits for the page to differ
+    // from what it was — which is the same principle, and never a fixed sleep. A
+    // script-rendered result otherwise arrives after the model has already been shown
+    // the old screen and concluded nothing happened.
+    observation = await settle(driver, observation);
+
     await driver.screenshot(join(evidenceDir, `turn-${pad(turn)}-${decision.action.kind}.png`))
       .catch(() => undefined);
-
-    observation = await driver.observe();
     entry.after = observation;
     trace.push(entry);
     log("acted", {
@@ -308,6 +313,28 @@ export async function discover(opts: DiscoverOptions): Promise<DiscoveryRun> {
   }
 
   return finish("exhausted", `reached the ${maxTurns}-turn limit`);
+}
+
+/**
+ * Re-observe until the screen differs from `previous`, or a short budget runs out.
+ *
+ * Not every action changes the page — filling a field usually does not — so a timeout
+ * here is a normal outcome, not a failure.
+ */
+async function settle(
+  driver: SurfaceDriver,
+  previous: Observation,
+  budgetMs = 4000,
+  pollMs = 250,
+): Promise<Observation> {
+  const deadline = Date.now() + budgetMs;
+  let latest = await driver.observe();
+  while (Date.now() < deadline) {
+    if (latest.text !== previous.text || latest.url !== previous.url) return latest;
+    await new Promise((r) => setTimeout(r, pollMs));
+    latest = await driver.observe();
+  }
+  return latest;
 }
 
 function pad(n: number): string {

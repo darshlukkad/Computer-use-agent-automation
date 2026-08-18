@@ -47,7 +47,10 @@ Two things to extract:
      money   an amount of currency
      number  a plain numeric quantity
      boolean a yes/no state
-     string  anything else, including identifiers and names
+     string  anything else, including identifiers, names, and confirmations
+   Choose the type by what will be READABLE ON SCREEN, not by how the answer feels.
+   A confirmation or status is shown as words — "Transfer Complete!" — so it is a
+   string. Reserve boolean for a field that literally displays a yes/no value.
    Name them for what they are, not for the specific record: "balance", never
    "balance_for_account_13344". A task that only asks for something to be done, with
    no value reported back, has no outputs.

@@ -25,6 +25,83 @@ import type { AxNode, Observation } from "../surface/driver.ts";
 import type { DiscoveryRun, TraceEntry } from "./loop.ts";
 
 const RUNNER_VERSION = "0.1.0";
+
+/**
+ * Controls whose activation commits something that cannot be taken back.
+ *
+ * A live transfer run made the need concrete: the click that moved $25 compiled as
+ * `idempotent_write` / `safe`, which would have made a money-moving capability
+ * auto-approvable and nominally retry-safe.
+ *
+ * ponytail: a name-pattern heuristic, and it will both miss and over-trigger. It fails
+ * in the safe direction — over-classifying only costs an approval — and the caller can
+ * override with an explicit risk. The upgrade path is a per-product control registry,
+ * or asking the application which of its actions are transactional; neither is
+ * something to invent from a name pattern, and neither belongs in a take-home.
+ */
+const COMMITS = /\b(transfer|submit|confirm|pay|send|authoris?e|authorize|withdraw|deposit|delete|remove|close|cancel|approve|post|wire|open (a |an )?(new )?account)\b/i;
+
+/** Whether the control is the kind of thing that submits, as opposed to navigates. */
+function isButtonLike(t: Target): boolean {
+  return t.strategies.some((st) => st.kind === "role_name" && st.role !== "link");
+}
+
+/** What the control says about itself, for classification only. */
+function actionLabel(t: Target): string {
+  return t.strategies
+    .map((st) =>
+      st.kind === "role_name" ? st.name
+      : st.kind === "label" || st.kind === "nearby_text" ? st.text
+      : st.kind === "table_cell" ? st.header
+      : "",
+    )
+    .join(" ");
+}
+
+interface Classification {
+  effect: Step["effect"];
+  risk: Step["risk"];
+  onError: Step["onError"];
+}
+
+/**
+ * Three classes, because a name alone does not distinguish submitting from
+ * navigating, and collapsing them either cries wolf or misses a commitment.
+ *
+ * A live transfer run produced both cases at once: the button labelled "Transfer"
+ * moved $25, and the navigation link labelled "Transfer Funds" moved nothing. Marking
+ * that link irreversible costs nothing operationally, but it makes the classification
+ * look careless — and this field is precisely the one a reviewer is meant to trust.
+ *
+ * So a transaction verb on a button-like control is a commitment; the same verb on a
+ * link is treated as unverified rather than safe — not retried, not escalated.
+ * Under-classifying a delete-by-link stays possible, which is why an explicit --risk
+ * overrides this, and why every artifact compiles to draft and needs approval anyway.
+ */
+function classifyAction(target: Target, override?: Step["risk"]): Classification {
+  if (override) {
+    return override === "irreversible"
+      ? { effect: "irreversible_mutation", risk: "irreversible", onError: "escalate" }
+      : override === "reversible"
+        ? { effect: "reversible_mutation", risk: "reversible", onError: "fail" }
+        : { effect: "idempotent_write", risk: "safe", onError: "fail" };
+  }
+
+  if (!COMMITS.test(actionLabel(target))) {
+    return { effect: "idempotent_write", risk: "safe", onError: "fail" };
+  }
+  if (isButtonLike(target)) {
+    return {
+      effect: "irreversible_mutation",
+      risk: "irreversible",
+      // When a committed action cannot be verified, nobody should guess whether it
+      // landed. A person has to look.
+      onError: "escalate",
+    };
+  }
+  // A transaction verb on a link: probably navigation, but not worth retrying blind.
+  return { effect: "reversible_mutation", risk: "reversible", onError: "fail" };
+}
 const MONEY = /^-?[$€£]?\s?[\d,]+\.\d{2}$/;
 /** Values too volatile to assert on: amounts, dates, times, long digit runs. */
 const VOLATILE = /\d{2}[:/-]\d{2}|[$€£]\s?[\d,]+\.\d{2}|\b\d{4,}\b/;
@@ -45,6 +122,8 @@ export interface CompileOptions {
    * read an account number gets stopped before it becomes an artifact.
    */
   requiredOutputs?: Array<{ name: string; type: FieldSpec["type"] }>;
+  /** Force the risk class, when the caller knows better than a name pattern. */
+  risk?: Step["risk"];
   answer?: string;
 }
 
@@ -121,6 +200,7 @@ export function compile(opts: CompileOptions): Capability {
       }
 
       case "click": {
+        const { effect, risk, onError } = classifyAction(target, opts.risk);
         const appeared = derivePostcondition(entry);
         if (!appeared) {
           throw new CompileFailed(
@@ -130,11 +210,11 @@ export function compile(opts: CompileOptions): Capability {
         }
         steps.push({
           id, action: "click", target,
-          effect: "idempotent_write",
-          risk: "safe",
+          effect, risk, onError,
           timeoutMs: 20_000,
+          // Never more than one attempt on a click: even a reversible one may have
+          // committed by the time the response was lost.
           maxAttempts: 1,
-          onError: "fail",
           postcondition: appeared,
         });
         break;
@@ -312,8 +392,31 @@ function fits(value: string, type: FieldSpec["type"]): boolean {
   }
 }
 
+/**
+ * Match a typed value back to the parameter it came from.
+ *
+ * Exact comparison alone is not enough. A live run asked to transfer "$25.00" and the
+ * model typed "25.00", because the field already prints the currency symbol — so the
+ * amount was compiled as a constant and the capability would have moved $25 forever,
+ * whatever it was asked for.
+ *
+ * Numeric comparison closes that gap without loosening provenance: the value still
+ * came from the request, only its presentation differs.
+ */
 function paramFor(literal: string, params: Record<string, string>): string | undefined {
   for (const [name, value] of Object.entries(params)) if (value === literal) return name;
+
+  const asNumber = (v: string): number | null => {
+    const cleaned = v.replace(/[$€£,\s]/g, "");
+    if (!/^-?\d+(\.\d+)?$/.test(cleaned)) return null;
+    return Number(cleaned);
+  };
+  const typed = asNumber(literal);
+  if (typed === null) return undefined;
+  for (const [name, value] of Object.entries(params)) {
+    const declared = asNumber(value);
+    if (declared !== null && declared === typed) return name;
+  }
   return undefined;
 }
 
