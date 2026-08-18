@@ -39,8 +39,12 @@ export interface CompileOptions {
   versionRange: string;
   originAllowlist: string[];
   entryPath: string;
-  /** Logical credential roles the flow needed, in the order they were typed. */
-  credentials?: string[];
+  /**
+   * The output contract, declared by the caller. Compilation fails if what the run
+   * read does not fit — which is how a model claiming to have read a balance when it
+   * read an account number gets stopped before it becomes an artifact.
+   */
+  requiredOutputs?: Array<{ name: string; type: FieldSpec["type"] }>;
   answer?: string;
 }
 
@@ -55,9 +59,10 @@ export function compile(opts: CompileOptions): Capability {
   const acted = run.trace.filter((t) => t.outcome === "ok" && t.target);
   if (!acted.length) throw new CompileFailed("the run completed without a single successful action");
 
-  const credentials = [...(opts.credentials ?? [])];
   const inputs: Record<string, FieldSpec> = {};
   const steps: Step[] = [];
+  /** Parameters that turned out to be genuinely used somewhere in the flow. */
+  const usedParams = new Set<string>();
 
   steps.push({
     id: "s1_open",
@@ -73,17 +78,18 @@ export function compile(opts: CompileOptions): Capability {
   let n = 1;
   for (const entry of acted) {
     n += 1;
-    const target = entry.target!.ladder;
-    const id = `s${n}_${slug(entry.action.kind, target)}`;
+    const rawTarget = entry.target!.ladder;
+    const target = parameteriseTarget(rawTarget, run.params, usedParams);
+    const id = `s${n}_${slug(entry.action.kind, rawTarget)}`;
 
     switch (entry.action.kind) {
       case "fill":
       case "select": {
         const literal = entry.action.value;
         const param = paramFor(literal, run.params);
-        // Credentials are consumed in the order they were typed; the artifact records
-        // a role name and never the value. See values.ts resolveSecret().
-        const credential = !param && credentials.length ? credentials.shift() : undefined;
+        // The loop recorded which fills wrote a credential, so this is read off the
+        // trace rather than inferred from the order fields happened to be typed in.
+        const credential = entry.credentialRef;
 
         if (param) {
           inputs[param] ??= {
@@ -156,16 +162,34 @@ export function compile(opts: CompileOptions): Capability {
     throw new CompileFailed("the run read no values, so the capability would return nothing");
   }
 
+  const declaredOutputs = opts.requiredOutputs ?? [];
   const outputs: Record<string, FieldSpec> = {};
+
   for (const r of reads) {
     const name = (r.action as { outputName: string }).outputName;
-    const value = r.extracted?.value ?? "";
+    const value = (r.extracted?.value ?? "").trim();
+    const declared = declaredOutputs.find((d) => d.name === name);
+    const type = declared?.type ?? (MONEY.test(value) ? "money" : "string");
+
+    // The check that makes the model's claim of success unnecessary to trust.
+    if (declared && !fits(value, declared.type)) {
+      throw new CompileFailed(
+        `output '${name}' was declared ${declared.type} but the run read ` +
+        `${JSON.stringify(value.slice(0, 40))}, which is not a ${declared.type}. ` +
+        `The step read ${describe(r.target!.ladder)} — most likely the wrong control.`,
+      );
+    }
+
     outputs[name] = {
-      type: MONEY.test(value.trim()) ? "money" : "string",
-      required: true,
-      pii: "none",
+      type, required: true, pii: "none",
       description: `Read from ${describe(r.target!.ladder)} during discovery.`,
     };
+  }
+
+  for (const d of declaredOutputs) {
+    if (!(d.name in outputs)) {
+      throw new CompileFailed(`declared output '${d.name}' was never read during the run`);
+    }
   }
 
   const artifact: Capability = {
@@ -193,14 +217,14 @@ export function compile(opts: CompileOptions): Capability {
       versionRange: opts.versionRange,
     },
     entry: { originAllowlist: opts.originAllowlist, path: opts.entryPath },
-    signature: { inputs, outputs },
+    signature: { inputs: withUsedParams(inputs, usedParams, run.params), outputs },
     preconditions: [openingCheckpoint(acted[0]!.before)],
     steps,
     // Deliberately empty: nothing went wrong during this run, so nothing about what
     // going wrong looks like has been observed.
     exceptions: [],
     success: {
-      checkpoint: successCheckpoint(run),
+      checkpoint: successCheckpoint(run, new Set(Object.keys(withUsedParams(inputs, usedParams, run.params)))),
       extract: reads.map((r) => ({
         output: (r.action as { outputName: string }).outputName,
         from: steps.find((s) => s.extractTo === (r.action as { outputName: string }).outputName)!.id,
@@ -257,9 +281,77 @@ export function probeOutcome(
 
 // ---------------------------------------------------------------------------
 
+/** Inputs discovered from keystrokes, plus any that appeared inside a locator. */
+function withUsedParams(
+  inputs: Record<string, FieldSpec>,
+  used: Set<string>,
+  params: Record<string, string>,
+): Record<string, FieldSpec> {
+  const out = { ...inputs };
+  for (const name of used) {
+    out[name] ??= {
+      type: "string",
+      required: true,
+      pii: "identifier",
+      description: `Supplied per invocation; identified a control during discovery.`,
+    };
+  }
+  // A parameter the flow never used is not part of the contract.
+  for (const name of Object.keys(out)) {
+    if (!(name in params)) continue;
+  }
+  return out;
+}
+
+function fits(value: string, type: FieldSpec["type"]): boolean {
+  switch (type) {
+    case "money": return MONEY.test(value);
+    case "number": return /^-?[\d,]+(\.\d+)?$/.test(value);
+    case "boolean": return /^(true|false|yes|no)$/i.test(value);
+    case "string": return value.length > 0;
+  }
+}
+
 function paramFor(literal: string, params: Record<string, string>): string | undefined {
   for (const [name, value] of Object.entries(params)) if (value === literal) return name;
   return undefined;
+}
+
+/**
+ * Parameterise a locator, not only a typed value.
+ *
+ * A live run exposed why: the model read the balance by targeting the control whose
+ * *name is the account number*, so the artifact's locator contained 13122 as a
+ * literal and the capability worked for exactly one account. A parameter can arrive
+ * in the page as easily as it arrives in a keystroke.
+ */
+function parameteriseTarget(
+  t: Target,
+  params: Record<string, string>,
+  used: Set<string>,
+): Target {
+  const swap = (text: string): string => {
+    let out = text;
+    for (const [name, value] of Object.entries(params)) {
+      if (value && out.includes(value)) {
+        out = out.split(value).join(`\${inputs.${name}}`);
+        used.add(name);
+      }
+    }
+    return out;
+  };
+
+  const strategies = t.strategies.map((st) => {
+    switch (st.kind) {
+      case "role_name": return { ...st, name: swap(st.name) };
+      case "label": return { ...st, text: swap(st.text) };
+      case "nearby_text": return { ...st, text: swap(st.text) };
+      case "table_cell":
+        return { ...st, header: swap(st.header), ...(st.rowMatch ? { rowMatch: swap(st.rowMatch) } : {}) };
+      case "css": return st;
+    }
+  });
+  return { ...t, strategies };
 }
 
 /** The same control, as its own target, for a postcondition that reads it back. */
@@ -321,7 +413,7 @@ function distinguishingText(present: Observation, absent: Observation): string |
  * record we asked about — the second half is what stops "some account's balance" from
  * counting as an answer.
  */
-function successCheckpoint(run: DiscoveryRun): Condition {
+function successCheckpoint(run: DiscoveryRun, declaredInputs: Set<string>): Condition {
   const last = run.trace.filter((t) => t.after).at(-1);
   const final = last?.after;
   const items: Condition[] = [];
@@ -330,7 +422,11 @@ function successCheckpoint(run: DiscoveryRun): Condition {
   if (heading) items.push({ kind: "text_present", text: heading.name });
 
   for (const [name, value] of Object.entries(run.params)) {
-    if (final?.text.includes(value)) items.push({ kind: "text_present", text: `\${inputs.${name}}` });
+    // Only assert on a parameter the artifact actually declares, or the checkpoint
+    // would compare against an uninterpolated placeholder.
+    if (declaredInputs.has(name) && final?.text.includes(value)) {
+      items.push({ kind: "text_present", text: `\${inputs.${name}}` });
+    }
   }
 
   if (!items.length) throw new CompileFailed("no stable success condition could be derived from the final screen");

@@ -18,6 +18,7 @@ import type { Observation, SurfaceDriver } from "../surface/driver.ts";
 import { TargetAmbiguous, TargetMissing } from "../surface/driver.ts";
 import type { Target } from "../artifact/schema.ts";
 import { renderDecision, renderGoal, renderResult, SYSTEM } from "./prompt.ts";
+import { resolveSecret } from "../replay/values.ts";
 import type { Decision, Exchange, ModelClient, ModelTarget } from "./model.ts";
 
 export interface TraceEntry {
@@ -30,6 +31,8 @@ export interface TraceEntry {
   before: Observation;
   after?: Observation;
   outcome: "ok" | "unresolved" | "ambiguous" | "blocked" | "error";
+  /** Set when this fill wrote a credential; the value itself is never recorded. */
+  credentialRef?: string;
   detail?: string;
   extracted?: { name: string; value: string };
 }
@@ -58,6 +61,18 @@ export interface DiscoverOptions {
   evidenceRoot?: string;
   /** Actions the run may take at all. Defaults to the read-only set. */
   allowedActions?: Array<Decision["action"]["kind"]>;
+  /**
+   * Logical credential roles the run may use, e.g. ["operator_username"].
+   *
+   * The model is told these names and fills fields with them verbatim; the real value
+   * is substituted here, at the keystroke. So the secret never enters the model's
+   * context and never enters the trace, while the sign-in still works. Giving the
+   * model the actual credential would put it in the transcript, the evidence, and any
+   * provider-side logging — for a value it has no need to know.
+   */
+  credentials?: string[];
+  /** The output contract the caller wants. Declared, never invented by the model. */
+  requiredOutputs?: Array<{ name: string; type: string }>;
 }
 
 const SAFE_ACTIONS: Array<Decision["action"]["kind"]> = [
@@ -136,8 +151,11 @@ export async function discover(opts: DiscoverOptions): Promise<DiscoveryRun> {
   await driver.clearSession();
   await driver.act({ action: "navigate", url: opts.entryUrl });
 
+  const credentials = opts.credentials ?? [];
+  const requiredOutputs = opts.requiredOutputs ?? [];
+  const wanted = new Set(requiredOutputs.map((r) => r.name));
   let observation = await driver.observe();
-  history.push({ role: "user", text: renderGoal(opts.goal, observation) });
+  history.push({ role: "user", text: renderGoal(opts.goal, observation, credentials, requiredOutputs) });
 
   for (let turn = 1; turn <= maxTurns; turn++) {
     if (Date.now() > deadline) return finish("exhausted", "timeout");
@@ -160,6 +178,25 @@ export async function discover(opts: DiscoverOptions): Promise<DiscoveryRun> {
     };
 
     if (decision.action.kind === "done") {
+      // The model's claim of success is not evidence of success. Hold it to the
+      // contract: on a live run this caught a model reporting it had read a balance
+      // when it had in fact read an account number.
+      const missing = [...wanted].filter((n) => !(n in outputs));
+      if (missing.length) {
+        entry.outcome = "blocked";
+        entry.detail = `claimed done without reading: ${missing.join(", ")}`;
+        trace.push(entry);
+        log("premature_done", { turn, missing });
+        history.push({
+          role: "user",
+          text: renderResult(
+            `You have not recorded ${missing.join(", ")} yet, so the goal is not met. ` +
+            `Read the control that displays the value.`,
+            observation,
+          ),
+        });
+        continue;
+      }
       trace.push(entry);
       await driver.screenshot(join(evidenceDir, `turn-${pad(turn)}-done.png`)).catch(() => undefined);
       return finish("success", decision.action.summary || "model reported the goal met");
@@ -193,16 +230,37 @@ export async function discover(opts: DiscoverOptions): Promise<DiscoveryRun> {
         case "click":
           await driver.act({ action: "click", target: ladder });
           break;
-        case "fill":
-          await driver.act({ action: "fill", target: ladder, value: decision.action.value });
+        case "fill": {
+          // Substitute here and nowhere earlier: the trace keeps the placeholder.
+          const isCredential = credentials.includes(decision.action.value);
+          const typed = isCredential ? resolveSecret(decision.action.value) : decision.action.value;
+          await driver.act({ action: "fill", target: ladder, value: typed });
+          if (isCredential) entry.credentialRef = decision.action.value;
           break;
+        }
         case "select":
           await driver.act({ action: "select", target: ladder, value: decision.action.value });
           break;
         case "read": {
+          const name = decision.action.outputName;
+          if (wanted.size && !wanted.has(name)) {
+            // Names are part of the contract; a run may not rename them.
+            entry.outcome = "blocked";
+            entry.detail = `'${name}' is not a declared output`;
+            trace.push(entry);
+            observation = await driver.observe();
+            history.push({
+              role: "user",
+              text: renderResult(
+                `'${name}' is not one of the values this task requires. Use one of: ${[...wanted].join(", ")}.`,
+                observation,
+              ),
+            });
+            continue;
+          }
           const value = await driver.readText(ladder);
-          outputs[decision.action.outputName] = value;
-          entry.extracted = { name: decision.action.outputName, value };
+          outputs[name] = value;
+          entry.extracted = { name, value };
           break;
         }
       }

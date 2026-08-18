@@ -450,12 +450,36 @@ export function assertArtifactSound(a: Capability): void {
     }
   }
 
+  // Every ${inputs.x} anywhere in the artifact must be a declared input. The compiler
+  // can otherwise emit a success condition referring to a parameter that does not
+  // exist, which replay would silently compare against the literal placeholder.
+  const declared = new Set(Object.keys(a.signature.inputs));
+  for (const ref of referencedInputs(a)) {
+    if (!declared.has(ref)) {
+      fail(`references \${inputs.${ref}} but declares no such input`);
+    }
+  }
+
   // Every declared output must actually be produced by some extraction.
   for (const name of Object.keys(a.signature.outputs)) {
     if (!a.success.extract.some((e) => e.output === name)) {
       fail(`signature declares output '${name}' that nothing extracts`);
     }
   }
+}
+
+/** Names referenced as ${inputs.x} anywhere in the artifact. */
+export function referencedInputs(a: Capability): Set<string> {
+  const found = new Set<string>();
+  const scan = (v: unknown): void => {
+    if (typeof v === "string") {
+      for (const m of v.matchAll(/\$\{inputs\.([A-Za-z_][A-Za-z0-9_]*)\}/g)) found.add(m[1]!);
+    } else if (Array.isArray(v)) v.forEach(scan);
+    else if (v && typeof v === "object") Object.values(v).forEach(scan);
+  };
+  // metadata/provenance are prose and may legitimately mention a placeholder.
+  scan({ preconditions: a.preconditions, steps: a.steps, exceptions: a.exceptions, success: a.success });
+  return found;
 }
 
 export function parseCapability(data: unknown): Capability {

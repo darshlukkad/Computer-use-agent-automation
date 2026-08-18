@@ -15,6 +15,19 @@ import { replay } from "./replay/engine.ts";
 import { formatMoney } from "./replay/values.ts";
 import type { ReplayResult } from "./result/types.ts";
 
+/**
+ * Load .env before anything reads process.env.
+ *
+ * Node does not read .env on its own, and neither did we — a key sitting in the file
+ * was simply invisible. Using the built-in loader rather than a dependency; a real
+ * environment variable already set always wins, so CI and shell exports are unaffected.
+ */
+try {
+  process.loadEnvFile(".env");
+} catch {
+  // No .env is normal: replay needs only credentials, which may come from the shell.
+}
+
 function flag(name: string): string | undefined {
   const i = process.argv.indexOf(`--${name}`);
   return i === -1 ? undefined : process.argv[i + 1];
@@ -37,6 +50,7 @@ function repeated(name: string): string[] {
 
 const USAGE = `
   discover --goal '<text>' --id <capability> --entry <url>
+           --output <name>:<string|money|number|boolean> ...
            [--param k=v ...] [--credential <role> ...] [--headed] [--slow <ms>]
            [--max-turns <n>] [--vendor <v>] [--product <p>]
   replay   --id <capability> --input '<json>' [--headed] [--slow <ms>] [--video <dir>]
@@ -85,6 +99,17 @@ async function main(): Promise<number> {
       goal,
     );
 
+    // The output contract is the caller's, never the model's. Compilation checks the
+    // run against it, so a model claiming success it did not achieve cannot ship.
+    const requiredOutputs = repeated("output").map((spec) => {
+      const [name, type = "string"] = spec.split(":");
+      if (!name) throw new Error(`--output needs <name>:<type>, got ${JSON.stringify(spec)}`);
+      if (!["string", "money", "number", "boolean"].includes(type)) {
+        throw new Error(`unknown output type '${type}'`);
+      }
+      return { name, type: type as "string" | "money" | "number" | "boolean" };
+    });
+
     const model = await modelFromEnv();
     const driver = new WebDriver({
       headed: has("headed"),
@@ -98,6 +123,8 @@ async function main(): Promise<number> {
 
     const run = await discover({
       goal: renderedGoal, params, entryUrl: entry, driver, model,
+      credentials: repeated("credential"),
+      requiredOutputs,
       maxTurns: flag("max-turns") ? Number(flag("max-turns")) : undefined,
     });
     await driver.close();
@@ -121,7 +148,7 @@ async function main(): Promise<number> {
       versionRange: flag("version-range") ?? ">=0.0.0",
       originAllowlist: [new URL(entry).origin],
       entryPath: new URL(entry).pathname + new URL(entry).search,
-      credentials: repeated("credential"),
+      requiredOutputs,
     });
 
     const path = join(CAPABILITY_DIR, `${id}.json`);

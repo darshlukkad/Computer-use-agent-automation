@@ -24,7 +24,11 @@
 /** Returns AxNode[]. Takes a node cap. */
 export const HARVEST_FN = `function (maxNodes) {
   var INTERESTING = ["button","link","textbox","searchbox","combobox","checkbox",
-                     "radio","heading","alert","alertdialog","dialog","status"];
+                     "radio","heading","alert","alertdialog","dialog","status","cell"];
+  /* Cells are capped separately: a data table would otherwise crowd out everything
+     else, and only a handful of cells are ever the value someone wants. */
+  var MAX_CELLS = 40;
+  var cells = 0;
 
   function implicitRole(el) {
     var explicit = el.getAttribute("role");
@@ -36,6 +40,11 @@ export const HARVEST_FN = `function (maxNodes) {
     if (tag === "textarea") return "textbox";
     if (/^h[1-6]$/.test(tag)) return "heading";
     if (tag === "dialog") return "dialog";
+    /* A displayed value very often lives in a plain td. Legacy applications state the
+       reading as a caption cell followed by a value cell: no input, no label and no
+       header row, so a walker that only reports interactive controls cannot see the
+       number an operator is looking straight at. */
+    if (tag === "td") return "cell";
     if (tag === "input") {
       var t = (el.getAttribute("type") || "text").toLowerCase();
       if (t === "submit" || t === "button" || t === "reset" || t === "image") return "button";
@@ -135,6 +144,14 @@ export const HARVEST_FN = `function (maxNodes) {
     if (INTERESTING.indexOf(role) === -1) continue;
     if (!visible(el)) continue;
 
+    if (role === "cell") {
+      if (cells >= MAX_CELLS) continue;
+      var cellText = (el.textContent || "").replace(/\\s+/g, " ").trim();
+      /* Empty spacer cells and long prose blocks are not values. */
+      if (!cellText || cellText.length > 60) continue;
+      cells++;
+    }
+
     var name = accessibleName(el, role);
     var node = { role: role, name: name };
 
@@ -146,10 +163,13 @@ export const HARVEST_FN = `function (maxNodes) {
       if (type !== "password" && el.value) node.value = String(el.value).slice(0, 80);
     } else if (tag === "SELECT") {
       node.value = String(el.value || "").slice(0, 80);
+    } else if (role === "cell") {
+      node.value = (el.textContent || "").replace(/\\s+/g, " ").trim().slice(0, 80);
     }
 
-    /* Only worth computing when the app gave the control no name of its own. */
-    if (!name) {
+    /* Only worth computing when the app gave the control no name of its own. A cell
+       is always in this position: its text is the value, never the caption. */
+    if (!name || role === "cell") {
       var near = nearbyText(el);
       if (near) node.nearbyText = near;
     }

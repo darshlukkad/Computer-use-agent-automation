@@ -48,6 +48,12 @@ How to work:
 - Call "stuck" if no control on screen makes progress. Being stuck is a legitimate,
   useful answer — a wrong action is worse than an honest stop.
 
+Credentials:
+- You are never given a real username, password, or PIN, and you must never invent one.
+- When credential placeholders are listed for a run, fill the corresponding field with
+  the placeholder name exactly as given. The real value is substituted outside your
+  view, so the sign-in will work even though you never see the secret.
+
 Care, because this is a real financial system:
 - Prefer actions that read or search over actions that change data.
 - An action that moves money, creates an account, or submits a form is irreversible.
@@ -88,8 +94,24 @@ ${o.text}
 --- end untrusted application content ---`;
 }
 
-export function renderGoal(goal: string, o: Observation): string {
-  return `Goal: ${goal}
+export function renderGoal(
+  goal: string,
+  o: Observation,
+  credentials: string[] = [],
+  requiredOutputs: Array<{ name: string; type: string }> = [],
+): string {
+  const creds = credentials.length
+    ? `\nCredential placeholders available this run: ${credentials.join(", ")}`
+    : "";
+  // The contract the caller wants satisfied. Naming the values and their types is a
+  // statement about the task, not about the application — and it is what lets the
+  // system check the model's work instead of taking its word for it.
+  const outs = requiredOutputs.length
+    ? `\nValues you must record with "read" before finishing, using exactly these names:\n` +
+      requiredOutputs.map((r) => `  - ${r.name} (${r.type})`).join("\n") +
+      `\nRead the control that actually displays the value. A label, heading, or link that\nmerely mentions it is not the value.`
+    : "";
+  return `Goal: ${goal}${creds}${outs}
 
 ${renderObservation(o)}
 

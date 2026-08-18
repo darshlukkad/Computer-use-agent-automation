@@ -51,15 +51,27 @@ export interface ModelClient {
 // The action schema, shared by both providers
 // ---------------------------------------------------------------------------
 
+/**
+ * Optional fields are nullable rather than absent, because strict function schemas
+ * require every property to appear in `required` — omitting one is rejected outright.
+ * Null therefore means "the observation did not show this", and toAction() maps it
+ * back to undefined.
+ */
 const TARGET_SCHEMA = {
   type: "object",
   additionalProperties: false,
   properties: {
     role: { type: "string", description: "The control's role, exactly as the observation lists it." },
-    name: { type: "string", description: "Its accessible name, if the observation shows one." },
-    nearbyText: { type: "string", description: "Its nearbyText, for controls with an empty name." },
+    name: {
+      type: ["string", "null"],
+      description: "Its accessible name, or null if the observation shows none.",
+    },
+    nearbyText: {
+      type: ["string", "null"],
+      description: "Its nearbyText, or null. Present for controls the application left unnamed.",
+    },
   },
-  required: ["role"],
+  required: ["role", "name", "nearbyText"],
 } as const;
 
 interface ToolSpec {
@@ -114,7 +126,7 @@ const TOOLS: ToolSpec[] = [
 ];
 
 function toAction(name: string, input: Record<string, unknown>): ModelAction {
-  const target = input.target as ModelTarget;
+  const target = cleanTarget(input.target);
   switch (name) {
     case "click": return { kind: "click", target };
     case "fill": return { kind: "fill", target, value: String(input.value ?? "") };
@@ -124,6 +136,15 @@ function toAction(name: string, input: Record<string, unknown>): ModelAction {
     case "stuck": return { kind: "stuck", reason: String(input.reason ?? "") };
     default: throw new Error(`model chose an unknown action '${name}'`);
   }
+}
+
+/** Drop the nulls the schema requires so the rest of the system sees absent fields. */
+function cleanTarget(raw: unknown): ModelTarget {
+  const t = (raw ?? {}) as Record<string, unknown>;
+  const target: ModelTarget = { role: String(t.role ?? "") };
+  if (typeof t.name === "string" && t.name) target.name = t.name;
+  if (typeof t.nearbyText === "string" && t.nearbyText) target.nearbyText = t.nearbyText;
+  return target;
 }
 
 export class ModelRefused extends Error {}
@@ -224,7 +245,7 @@ interface OpenAIResponse {
 // Selection
 // ---------------------------------------------------------------------------
 
-const DEFAULT_MODEL = { anthropic: "claude-opus-5", openai: "gpt-5" } as const;
+const DEFAULT_MODEL = { anthropic: "claude-opus-5", openai: "gpt-5.2" } as const;
 
 /**
  * Provider is inferred from the key prefix and can be forced with LLM_PROVIDER.

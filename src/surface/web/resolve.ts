@@ -30,8 +30,15 @@ function nameRe(name: string): RegExp {
   return new RegExp(`^\\s*${escapeRe(name)}\\s*$`, "i");
 }
 
-/** Controls a nearby-text anchor could plausibly be labelling. */
-const CONTROL = "self::input or self::select or self::textarea or self::button or self::a";
+/**
+ * What a nearby-text anchor could plausibly be labelling.
+ *
+ * `td` is included because on legacy screens the thing beside a caption is frequently
+ * a table cell rather than a form control — `<td>Balance:</td><td>$1,100.00</td>` has
+ * no input, no label and no header row, and the cell is what a human reads.
+ */
+const CONTROL =
+  "self::input or self::select or self::textarea or self::button or self::a or self::td";
 
 function locateIn(frame: Frame, s: LocatorStrategy, inputs: Record<string, string>): Locator {
   switch (s.kind) {
