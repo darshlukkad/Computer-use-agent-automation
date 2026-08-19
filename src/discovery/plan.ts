@@ -25,6 +25,16 @@ export interface GoalPlan {
   outputs: Array<{ name: string; type: FieldSpec["type"] }>;
   /** The goal with values replaced by placeholders, for the artifact's title. */
   template: string;
+  /**
+   * A sentence template reporting the result, or "" when the task reports nothing.
+   *
+   * Phrasing belongs to the capability rather than to the caller: an agent relaying a
+   * balance to a member should not have to invent wording, and wording that lands in
+   * front of a customer ought to be reviewable in the same diff as the flow that
+   * produced it. It is derived here, at discovery time, and compiled in — replay
+   * renders it with no model involved.
+   */
+  answer: string;
 }
 
 const SYSTEM = `You read a task written for a human operator of a business application
@@ -54,6 +64,13 @@ Two things to extract:
    Name them for what they are, not for the specific record: "balance", never
    "balance_for_account_13344". A task that only asks for something to be done, with
    no value reported back, has no outputs.
+
+3. Answer — one sentence reporting the result, written as a template someone would be
+   happy to read to a customer. Refer to every value through a \${outputs.<name>} or
+   \${inputs.<name>} placeholder, using exactly the names you chose above. Put no
+   literal value in it: the same sentence is used every time the task runs, with
+   different values each time. Report what was found, not what was done. Leave it
+   empty only when there are no outputs.
 
 Extract nothing that is not in the task.`;
 
@@ -91,10 +108,24 @@ const PLAN_TOOL = {
           required: ["name", "type"],
         },
       },
+      answer: {
+        type: "string",
+        description:
+          "One sentence reporting the result, using ${outputs.name} and ${inputs.name} " +
+          "placeholders and no literal values. Empty string if there are no outputs.",
+      },
     },
-    required: ["thought", "parameters", "outputs"],
+    required: ["thought", "parameters", "outputs", "answer"],
   },
 };
+
+/** Every `${inputs.x}` / `${outputs.y}` a template refers to. */
+function placeholders(template: string): Array<{ bucket: string; name: string }> {
+  return [...template.matchAll(/\$\{(inputs|outputs)\.([A-Za-z_][A-Za-z0-9_]*)\}/g)].map((m) => ({
+    bucket: m[1]!,
+    name: m[2]!,
+  }));
+}
 
 export class GoalUnclear extends Error {}
 
@@ -125,5 +156,60 @@ export async function planGoal(model: ModelClient, goal: string): Promise<GoalPl
     .filter((o) => o.name)
     .map((o) => ({ name: o.name, type: o.type as FieldSpec["type"] }));
 
-  return { params, outputs, template };
+  const answer = validateAnswer(String(raw.answer ?? "").trim(), params, outputs);
+  return { params, outputs, template, answer };
+}
+
+/**
+ * Hold the proposed sentence to the contract it is supposed to describe.
+ *
+ * Two failure modes, both seen from models on other parts of this system. A
+ * placeholder naming something that does not exist renders as a visible hole; a
+ * sentence with the run's actual values typed into it looks perfect on the run that
+ * produced it and is wrong on every run after. Neither is worth shipping into an
+ * artifact a reviewer is meant to be able to trust at a glance.
+ */
+function validateAnswer(
+  answer: string,
+  params: Record<string, string>,
+  outputs: Array<{ name: string }>,
+): string {
+  if (!answer) {
+    if (outputs.length) {
+      throw new GoalUnclear(
+        `the task reports ${outputs.map((o) => o.name).join(", ")} but no answer sentence ` +
+        `was proposed. Pass --answer '<sentence>' explicitly.`,
+      );
+    }
+    return "";
+  }
+
+  const declared = { inputs: new Set(Object.keys(params)), outputs: new Set(outputs.map((o) => o.name)) };
+  for (const { bucket, name } of placeholders(answer)) {
+    const known = bucket === "inputs" ? declared.inputs : declared.outputs;
+    if (!known.has(name)) {
+      throw new GoalUnclear(
+        `the answer sentence refers to \${${bucket}.${name}}, which is not a declared ` +
+        `${bucket === "inputs" ? "parameter" : "output"}. Pass --answer '<sentence>' explicitly.`,
+      );
+    }
+  }
+
+  // A literal value in the template would be right once and wrong forever after.
+  for (const [name, value] of Object.entries(params)) {
+    if (answer.includes(value)) {
+      throw new GoalUnclear(
+        `the answer sentence contains this run's value for '${name}' literally, so it would ` +
+        `report the same value on every future run. Pass --answer '<sentence>' explicitly.`,
+      );
+    }
+  }
+
+  if (outputs.length && !placeholders(answer).some((p) => p.bucket === "outputs")) {
+    throw new GoalUnclear(
+      `the answer sentence reports none of the task's outputs ` +
+      `(${outputs.map((o) => o.name).join(", ")}), so it states no result.`,
+    );
+  }
+  return answer;
 }

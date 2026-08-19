@@ -7,17 +7,17 @@
     "status": "approved",
     "title": "look up account {{account_number}} and read its current balance",
     "description": "Discovered from a live run against localhost:8080.",
-    "digest": "25b845878994a1e7e23078a9451818776d8225347139d6596e67ced7f627c8ff",
+    "digest": "8291fccab4af2fecd37e622ff89ef825199f775bb9942e2802bd0c0c7c69fb64",
     "approval": {
-      "digest": "25b845878994a1e7e23078a9451818776d8225347139d6596e67ced7f627c8ff",
+      "digest": "8291fccab4af2fecd37e622ff89ef825199f775bb9942e2802bd0c0c7c69fb64",
       "approverId": "darsh@personal.com",
-      "approvedAt": "2026-08-19T02:51:23.962Z"
+      "approvedAt": "2026-08-19T22:47:13.161Z"
     }
   },
   "provenance": {
-    "discoveryRunId": "evidence/discover-2026-08-18T21-52-08-515Z",
+    "discoveryRunId": "evidence/discover-2026-08-19T22-44-23-333Z",
     "model": "openai:gpt-5.2",
-    "createdAt": "2026-08-18T21:52:28.394Z",
+    "createdAt": "2026-08-19T22:44:48.954Z",
     "runnerVersion": "0.1.0",
     "liveLlm": true
   },
@@ -249,6 +249,7 @@
         "output": "current_balance",
         "from": "s5_read_balance"
       }
-    ]
+    ],
+    "answer": "The current balance for account ${inputs.account_number} is ${outputs.current_balance}."
   }
 }

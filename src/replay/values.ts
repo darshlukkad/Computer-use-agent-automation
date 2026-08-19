@@ -57,13 +57,18 @@ export function renderAnswer(
   template: string,
   scope: { inputs: Record<string, string>; outputs?: Record<string, unknown> },
 ): string {
-  return template.replace(
+  const rendered = template.replace(
     /\$\{(inputs|outputs)\.([A-Za-z_][A-Za-z0-9_]*)\}/g,
     (whole, bucket: string, key: string) => {
       const source = bucket === "inputs" ? scope.inputs : scope.outputs ?? {};
       return key in source ? display(source[key]) : whole;
     },
   );
+  // A template ending in a placeholder cannot know whether the value it interpolates
+  // already ends a sentence. ParaBank's transfer confirmation does, which rendered as
+  // "…to account #12567..". Neither the template nor the application is wrong, so this
+  // is fixed where the two meet rather than by asking a model to guess.
+  return rendered.replace(/([.!?])[.!?]+$/, "$1");
 }
 
 /**

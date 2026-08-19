@@ -466,14 +466,29 @@ export function assertArtifactSound(a: Capability): void {
       fail(`signature declares output '${name}' that nothing extracts`);
     }
   }
+
+  // Same rule for ${outputs.x}. The answer sentence is the only place these appear,
+  // and it is the one field a customer may end up reading, so a placeholder with
+  // nothing behind it must not survive review as a visible hole in a sentence.
+  const produced = new Set(Object.keys(a.signature.outputs));
+  for (const ref of referenced(a, "outputs")) {
+    if (!produced.has(ref)) {
+      fail(`references \${outputs.${ref}} but declares no such output`);
+    }
+  }
 }
 
 /** Names referenced as ${inputs.x} anywhere in the artifact. */
 export function referencedInputs(a: Capability): Set<string> {
+  return referenced(a, "inputs");
+}
+
+function referenced(a: Capability, bucket: "inputs" | "outputs"): Set<string> {
+  const re = new RegExp(`\\$\\{${bucket}\\.([A-Za-z_][A-Za-z0-9_]*)\\}`, "g");
   const found = new Set<string>();
   const scan = (v: unknown): void => {
     if (typeof v === "string") {
-      for (const m of v.matchAll(/\$\{inputs\.([A-Za-z_][A-Za-z0-9_]*)\}/g)) found.add(m[1]!);
+      for (const m of v.matchAll(re)) found.add(m[1]!);
     } else if (Array.isArray(v)) v.forEach(scan);
     else if (v && typeof v === "object") Object.values(v).forEach(scan);
   };

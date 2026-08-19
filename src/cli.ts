@@ -57,6 +57,7 @@ const USAGE = `
            [--param k=v ...] [--output <name>:<type> ...]   (inferred if omitted)
            [--credential <role> ...] [--headed] [--slow <ms>] [--policy <file>]
            [--max-turns <n>] [--vendor <v>] [--product <p>] [--risk <class>]
+           [--answer '<sentence template>']   (derived from the goal if omitted)
   replay   --id <capability> --input '<json>' [--headed] [--slow <ms>] [--video <dir>]
            [--tenant <name>] [--unapproved] [--policy <file>]
   probe    --id <capability> --good '<json>' --bad '<json>'
@@ -126,17 +127,22 @@ async function main(): Promise<number> {
     let params = explicitParams;
     let requiredOutputs = explicitOutputs;
     let goalTemplate = goal;
+    let answer = flag("answer");
 
     if (!Object.keys(explicitParams).length || !explicitOutputs.length) {
       const plan = await planGoal(model, goal);
       if (!Object.keys(explicitParams).length) { params = plan.params; goalTemplate = plan.template; }
       if (!explicitOutputs.length) requiredOutputs = plan.outputs;
+      // The sentence the capability will state its own result with. Derived here,
+      // reviewed at approval, and rendered at replay with no model involved.
+      answer ??= plan.answer || undefined;
 
       console.log("read from the goal:");
       const shown = Object.entries(params);
       console.log(`  parameters ${shown.length ? shown.map(([k, v]) => `${k}=${v}`).join(", ") : "(none)"}`);
       console.log(`  outputs    ${requiredOutputs.length ? requiredOutputs.map((o) => `${o.name}:${o.type}`).join(", ") : "(none)"}`);
-      console.log(`  template   ${goalTemplate}\n`);
+      console.log(`  template   ${goalTemplate}`);
+      console.log(`  answer     ${answer ?? "(none)"}\n`);
     }
 
     if (!requiredOutputs.length) {
@@ -192,6 +198,7 @@ async function main(): Promise<number> {
       originAllowlist: [new URL(entry).origin],
       entryPath: new URL(entry).pathname + new URL(entry).search,
       requiredOutputs,
+      ...(answer ? { answer } : {}),
       ...(flag("risk") ? { risk: flag("risk") as "safe" | "reversible" | "irreversible" } : {}),
     });
 
