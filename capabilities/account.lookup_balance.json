@@ -7,11 +7,11 @@
     "status": "approved",
     "title": "look up account {{account_number}} and read its current balance",
     "description": "Discovered from a live run against localhost:8080.",
-    "digest": "10285274ef6236a3cc15870b94bf3a867d0fb4fd963376fe7698c29276b9f315",
+    "digest": "25b845878994a1e7e23078a9451818776d8225347139d6596e67ced7f627c8ff",
     "approval": {
-      "digest": "10285274ef6236a3cc15870b94bf3a867d0fb4fd963376fe7698c29276b9f315",
-      "approverId": "darsh@band24.com",
-      "approvedAt": "2026-08-18T21:54:33.657Z"
+      "digest": "25b845878994a1e7e23078a9451818776d8225347139d6596e67ced7f627c8ff",
+      "approverId": "darsh@personal.com",
+      "approvedAt": "2026-08-19T02:51:23.962Z"
     }
   },
   "provenance": {
@@ -208,7 +208,28 @@
       "onError": "fail"
     }
   ],
-  "exceptions": [],
+  "exceptions": [
+    {
+      "id": "x_account_not_found",
+      "when": {
+        "kind": "all",
+        "items": [
+          {
+            "kind": "text_present",
+            "text": "Account Services"
+          },
+          {
+            "kind": "text_absent",
+            "text": "${inputs.account_number}"
+          }
+        ]
+      },
+      "class": "business_outcome",
+      "code": "ACCOUNT_NOT_FOUND",
+      "answer": "No account ${inputs.account_number} is visible to this operator, so no balance could be read.",
+      "verified": true
+    }
+  ],
   "success": {
     "checkpoint": {
       "kind": "all",

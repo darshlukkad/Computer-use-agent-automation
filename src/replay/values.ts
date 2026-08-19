@@ -67,25 +67,11 @@ export function renderAnswer(
 }
 
 /**
- * Mask values of fields the artifact tagged as regulated before an answer is
- * written to disk. The caller gets the real sentence; the evidence file gets a
- * fingerprint, so a run stays debuggable without persisting an account number.
- *
- * This is what makes the `pii` tags load-bearing rather than decorative.
+ * Redaction used to live here, masking exactly one string: the answer sentence. It
+ * now lives in the evidence recorder, which masks everything on its way to disk —
+ * the trace, the log, the observations — because a caller cannot forget to redact
+ * something it never handles. See `evidence/recorder.ts`.
  */
-export function redactAnswer(
-  answer: string,
-  inputs: Record<string, string>,
-  spec: Record<string, { pii?: string }>,
-): string {
-  let out = answer;
-  for (const [name, value] of Object.entries(inputs)) {
-    const pii = spec[name]?.pii;
-    if (!value || pii === "none" || pii === undefined) continue;
-    out = out.split(value).join(`[${name}:redacted]`);
-  }
-  return out;
-}
 
 /** Values enter the browser as strings; this is the sole conversion point. */
 export function validateInputs(

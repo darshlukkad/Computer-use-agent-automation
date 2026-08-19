@@ -14,6 +14,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { parseCapability, type Capability } from "../src/artifact/schema.ts";
+import { loadCapability } from "../src/artifact/store.ts";
 import { approve } from "../src/artifact/digest.ts";
 import { WebDriver } from "../src/surface/web/driver.ts";
 import { replay } from "../src/replay/engine.ts";
@@ -327,4 +328,53 @@ test("a business outcome is structurally not an error", async () => {
   // mistake this for a crash because the fields for one are not present.
   assert.equal("safeToRetry" in result, false);
   assert.equal("expected" in result, false);
+});
+
+// --- the same claim, on an artifact nobody wrote ---------------------------
+
+/**
+ * Everything above runs against the hand-written fixture, which was given its
+ * exception rules by hand. That is fine for testing the engine, and worthless as
+ * evidence that the *system* can produce them — a rule someone typed proves only that
+ * the schema has a field for it.
+ *
+ * These run against `capabilities/account.lookup_balance.json`, which was produced by
+ * a live discovery run and whose one exception rule was derived by `cli probe` from
+ * two real observations: a run that found the account and a run that did not. Nothing
+ * about it was written by a person, and `verified: true` means precisely that.
+ */
+const discovered = (): Capability => loadCapability("account.lookup_balance").artifact;
+
+test("a discovered artifact carries a verified exception rule", () => {
+  const rule = discovered().exceptions.find((e) => e.code === "ACCOUNT_NOT_FOUND");
+  assert.ok(rule, "the probe should have recorded this rule");
+  assert.equal(rule.verified, true, "only a run that reached the branch may set this");
+  assert.equal(rule.class, "business_outcome");
+
+  // The rule is app-agnostic in shape: a screen anchor plus a declared input that
+  // stopped being visible. No account number is baked into it.
+  assert.equal(JSON.stringify(rule.when).includes("99999"), false);
+  assert.match(JSON.stringify(rule.when), /\$\{inputs\./);
+});
+
+test("the discovered capability classifies a missing account as a business outcome", async () => {
+  const result = await replay({
+    artifact: approve(discovered(), "test@local"),
+    inputs: { account_number: "99999" }, driver, evidenceRoot,
+  });
+  assert.equal(result.status, "business_outcome", JSON.stringify(result, null, 2));
+  assert.equal(result.status === "business_outcome" && result.code, "ACCOUNT_NOT_FOUND");
+});
+
+test("the same capability still succeeds for an account that does exist", async () => {
+  // The half a derived rule most easily gets wrong: matching the happy path too.
+  const result = await replay({
+    artifact: approve(discovered(), "test@local"),
+    inputs: { account_number: "13122" }, driver, evidenceRoot,
+  });
+  assert.equal(result.status, "success", JSON.stringify(result, null, 2));
+  assert.deepEqual(
+    result.status === "success" ? result.outputs.current_balance : null,
+    { currency: "USD", minorUnits: 110000 },
+  );
 });

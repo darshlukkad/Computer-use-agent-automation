@@ -3,14 +3,17 @@
  * Operator entry point. Thin on purpose — it parses flags and prints results; every
  * decision lives in the modules it calls.
  */
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { loadCapability, listCapabilities, saveCapability, CAPABILITY_DIR } from "./artifact/store.ts";
+import type { ExceptionRule } from "./artifact/schema.ts";
+import type { Observation } from "./surface/driver.ts";
 import { discover } from "./discovery/loop.ts";
-import { compile } from "./discovery/compile.ts";
+import { compile, probeOutcome } from "./discovery/compile.ts";
 import { modelFromEnv } from "./discovery/model.ts";
 import { planGoal } from "./discovery/plan.ts";
 import { approve } from "./artifact/digest.ts";
+import { capabilityRisk, loadPolicy, POLICY_PATH, requiresApproval } from "./policy/policy.ts";
 import { WebDriver } from "./surface/web/driver.ts";
 import { replay } from "./replay/engine.ts";
 import { formatMoney } from "./replay/values.ts";
@@ -52,22 +55,32 @@ function repeated(name: string): string[] {
 const USAGE = `
   discover --goal '<natural language>' --id <capability> --entry <url>
            [--param k=v ...] [--output <name>:<type> ...]   (inferred if omitted)
-           [--credential <role> ...] [--headed] [--slow <ms>]
+           [--credential <role> ...] [--headed] [--slow <ms>] [--policy <file>]
            [--max-turns <n>] [--vendor <v>] [--product <p>] [--risk <class>]
   replay   --id <capability> --input '<json>' [--headed] [--slow <ms>] [--video <dir>]
-           [--tenant <name>] [--unapproved]
+           [--tenant <name>] [--unapproved] [--policy <file>]
+  probe    --id <capability> --good '<json>' --bad '<json>'
+           --code <CODE> [--class business_outcome|recoverable|hard_failure]
+           [--answer '<sentence>'] [--headed]
   approve  --id <capability> --approver <who>
-  list
+  list     [--policy <file>]
 `;
 
 async function main(): Promise<number> {
   const command = process.argv[2];
 
   if (command === "list") {
+    const policy = loadPolicy(flag("policy") ?? POLICY_PATH);
     for (const { path, artifact: a } of listCapabilities()) {
       const gate = a.metadata.status === "approved" ? "approved" : a.metadata.status.toUpperCase();
       console.log(`${a.metadata.id}  v${a.metadata.version}  [${gate}]`);
       console.log(`    ${a.metadata.title}`);
+      // Risk and the gate side by side, because "draft" only matters if the policy
+      // in force actually gates this risk class.
+      console.log(
+        `    risk: ${capabilityRisk(a)}` +
+        `${requiresApproval(policy, a) ? " (approval required)" : " (runs unattended)"}`,
+      );
       console.log(`    in:  ${describeFields(a.signature.inputs)}`);
       console.log(`    out: ${describeFields(a.signature.outputs)}`);
       console.log(`    ${path}\n`);
@@ -151,6 +164,7 @@ async function main(): Promise<number> {
 
     const run = await discover({
       goal: renderedGoal, params, entryUrl: entry, driver, model,
+      policy: loadPolicy(flag("policy") ?? POLICY_PATH),
       credentials: repeated("credential"),
       requiredOutputs,
       maxTurns: flag("max-turns") ? Number(flag("max-turns")) : undefined,
@@ -188,6 +202,74 @@ async function main(): Promise<number> {
     return 0;
   }
 
+  /**
+   * Teach a capability what an unhappy path looks like, by driving it into one.
+   *
+   * Every other command produces artifacts from happy runs, and those artifacts ship
+   * with `exceptions: []` — deliberately, because a run that never failed has seen
+   * nothing about failure. This is the only way an exception rule ever gets written,
+   * and the only place `verified: true` is ever set.
+   *
+   * It runs the capability twice against the live application: once with inputs that
+   * work, once with inputs that reach the branch. The rule is then the textual
+   * difference between the two screens, which is a measurement rather than a guess.
+   */
+  if (command === "probe") {
+    const id = required("id");
+    const good = JSON.parse(required("good")) as Record<string, string>;
+    const bad = JSON.parse(required("bad")) as Record<string, string>;
+    const code = required("code");
+    const outcomeClass = (flag("class") ?? "business_outcome") as ExceptionRule["class"];
+
+    const stored = loadCapability(id);
+    const driver = new WebDriver({ headed: has("headed") });
+    await driver.launch();
+
+    // Unapproved on purpose: probing is a development activity against a draft, and
+    // demanding approval first would mean approving an artifact whose exception rules
+    // do not exist yet.
+    const shared = { artifact: stored.artifact, driver, requireApproved: false };
+    console.log(`probing ${id}`);
+    const happy = await replay({ ...shared, inputs: good });
+    if (happy.status !== "success") {
+      await driver.close();
+      console.error(`the reference run did not succeed (${happy.status}), so there is `
+        + `nothing to compare against. Fix that run first.`);
+      report(happy);
+      return 1;
+    }
+
+    const unhappy = await replay({ ...shared, inputs: bad });
+    await driver.close();
+    report(unhappy);
+
+    if (unhappy.status === "success") {
+      console.error(`\nthe probe inputs succeeded, so no ${code} branch was reached.`);
+      return 1;
+    }
+
+    const successState = readObservation(happy.evidenceDir, ["success"]);
+    const branchState = readObservation(unhappy.evidenceDir, ["failure", "unhappy", "intervention"]);
+    if (!successState || !branchState) {
+      console.error("\nno observation was recorded for one of the two runs.");
+      return 1;
+    }
+
+    const updated = probeOutcome(
+      stored.artifact,
+      branchState,
+      { id: `x_${code.toLowerCase()}`, code, class: outcomeClass, ...(flag("answer") ? { answer: flag("answer") } : {}) },
+      successState,
+    );
+    saveCapability({ ...stored, artifact: updated });
+
+    const added = updated.exceptions.at(-1)!;
+    console.log(`\nrecorded exception ${added.id} (${added.class}, verified)`);
+    console.log(`  ${JSON.stringify(added.when)}`);
+    console.log(`\n${stored.path} changed, so it is back to draft and needs re-approval.`);
+    return 0;
+  }
+
   if (command === "replay") {
     const id = required("id");
     const inputs = JSON.parse(flag("input") ?? "{}") as Record<string, string>;
@@ -201,13 +283,18 @@ async function main(): Promise<number> {
     });
     await driver.launch();
 
+    const policy = loadPolicy(flag("policy") ?? POLICY_PATH);
     console.log(`replaying ${id} v${artifact.metadata.version}  inputs=${JSON.stringify(inputs)}`);
+    console.log(`  risk ${capabilityRisk(artifact)}, policy ${flag("policy") ?? POLICY_PATH}`);
     const result = await replay({
       artifact,
       inputs,
       driver,
+      policy,
       tenant: flag("tenant") ?? null,
-      requireApproved: !has("unapproved"),
+      // --unapproved is an explicit override for testing a draft; without it the
+      // policy decides, by the capability's risk.
+      ...(has("unapproved") ? { requireApproved: false } : {}),
     });
     await driver.close();
 
@@ -226,6 +313,18 @@ function required(name: string): string {
   const v = flag(name);
   if (!v) throw new Error(`--${name} is required`);
   return v;
+}
+
+/** The first observation a run happened to record, by preferred name. */
+function readObservation(dir: string, names: string[]): Observation | null {
+  for (const name of names) {
+    try {
+      return JSON.parse(readFileSync(join(dir, `${name}.json`), "utf8")) as Observation;
+    } catch {
+      // Not the shape this run ended in; try the next.
+    }
+  }
+  return null;
 }
 
 function describeFields(fields: Record<string, { type: string; required?: boolean }>): string {

@@ -363,17 +363,21 @@ for entitlements on the core system.
 
 ---
 
-## 7. The two capabilities
+## 7. The three capabilities
 
-| | `account.lookup_balance` | `account.transfer_funds` |
-|---|---|---|
-| Flow | login → overview → read balance for account | login → transfer → confirmation |
-| Inputs | `accountId` | `fromAccount`, `toAccount`, `amount` |
-| Outputs | `balance` (money), `accountId` | `confirmationText`, `amount` |
-| Effect | `observation` | `irreversible_mutation` |
-| Risk | `safe` | `irreversible` |
-| Status | approvable | **draft — blocked until approved** |
-| Business outcome | account not in list | insufficient funds |
+All three were produced by live discovery runs; the field names below are the ones the
+runs actually settled on, not ones planned in advance.
+
+| | `account.lookup_balance` | `account.transfer_funds` | `account.open_new_account` |
+|---|---|---|---|
+| Flow | login → overview → read balance | login → transfer → confirmation | login → open account → confirmation |
+| Inputs | `account_number` | `from_account`, `to_account`, `amount` | `funding_account_number` |
+| Outputs | `current_balance` (money) | `confirmation` | `new_account_number` |
+| Risk | `safe` | `irreversible` | `irreversible` |
+| Business outcome | account not in list — **derived by `cli probe`, `verified: true`** | insufficient funds (not probed) | below funding minimum (not probed) |
+
+Risk is derived from the steps rather than declared: a capability is as risky as its
+riskiest step, so there is no second place for it to drift.
 
 Money is `{ currency: "USD", minorUnits: integer }`. Never float dollars.
 

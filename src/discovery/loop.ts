@@ -12,11 +12,11 @@
  * substituted, and the compiler knows which literal came from which parameter because
  * it was told. Nothing in the prompt mentions parameterisation at all.
  */
-import { mkdirSync, writeFileSync, appendFileSync } from "node:fs";
-import { join } from "node:path";
 import type { Observation, SurfaceDriver } from "../surface/driver.ts";
 import { TargetAmbiguous, TargetMissing } from "../surface/driver.ts";
 import type { Target } from "../artifact/schema.ts";
+import { actionPermitted, loadPolicy, redacts, type Policy } from "../policy/policy.ts";
+import { makeMasker, Recorder } from "../evidence/recorder.ts";
 import { renderDecision, renderGoal, renderResult, SYSTEM } from "./prompt.ts";
 import { resolveSecret } from "../replay/values.ts";
 import type { Decision, Exchange, ModelClient, ModelTarget } from "./model.ts";
@@ -59,7 +59,9 @@ export interface DiscoverOptions {
   maxTurns?: number;
   timeoutMs?: number;
   evidenceRoot?: string;
-  /** Actions the run may take at all. Defaults to the read-only set. */
+  /** Guardrails. Read from policy.json unless a caller supplies its own. */
+  policy?: Policy;
+  /** Actions the run may take at all. Defaults to the policy's permitted set. */
   allowedActions?: Array<Decision["action"]["kind"]>;
   /**
    * Logical credential roles the run may use, e.g. ["operator_username"].
@@ -74,10 +76,6 @@ export interface DiscoverOptions {
   /** The output contract the caller wants. Declared, never invented by the model. */
   requiredOutputs?: Array<{ name: string; type: string }>;
 }
-
-const SAFE_ACTIONS: Array<Decision["action"]["kind"]> = [
-  "click", "fill", "select", "read", "done", "stuck",
-];
 
 /**
  * Turn what the model saw into a ladder worth recording.
@@ -130,15 +128,22 @@ function ladderFor(t: ModelTarget): Target {
 export async function discover(opts: DiscoverOptions): Promise<DiscoveryRun> {
   const { driver, model } = opts;
   const params = opts.params ?? {};
-  const maxTurns = opts.maxTurns ?? 14;
+  const policy = opts.policy ?? loadPolicy();
+  const maxTurns = opts.maxTurns ?? policy.discovery.maxTurns;
   const deadline = Date.now() + (opts.timeoutMs ?? 180_000);
-  const allowed = new Set(opts.allowedActions ?? SAFE_ACTIONS);
 
-  const evidenceDir = makeDir(opts.evidenceRoot ?? "evidence", "discover");
-  const logPath = join(evidenceDir, "log.jsonl");
-  const log = (event: string, data: Record<string, unknown>): void => {
-    appendFileSync(logPath, `${JSON.stringify({ at: new Date().toISOString(), event, ...data })}\n`);
-  };
+  /**
+   * The values the caller told us are the parameters of this task. There is no
+   * artifact yet to carry `pii` tags, so discovery treats them the way the compiler
+   * will: as identifiers. Masking them here is what stops a full page observation —
+   * which the trace records for every turn — from writing an account number to disk.
+   */
+  const recorder = new Recorder(opts.evidenceRoot ?? "evidence", "discover");
+  if (redacts(policy, "identifier")) {
+    recorder.setMask(makeMasker(Object.entries(params).map(([name, value]) => ({ name, value }))));
+  }
+  const evidenceDir = recorder.dir;
+  const log = (event: string, data: Record<string, unknown>): void => recorder.log(event, data);
 
   const trace: TraceEntry[] = [];
   const outputs: Record<string, string> = {};
@@ -152,7 +157,7 @@ export async function discover(opts: DiscoverOptions): Promise<DiscoveryRun> {
     };
     // The full trace, including every failed attempt. A tidied transcript would
     // misrepresent how the run actually went.
-    writeFileSync(join(evidenceDir, "trace.json"), `${JSON.stringify(run, null, 2)}\n`);
+    recorder.write("trace.json", run);
     log("finished", { status, stopReason, modelCalls, turns: trace.length });
     return run;
   };
@@ -208,18 +213,21 @@ export async function discover(opts: DiscoverOptions): Promise<DiscoveryRun> {
         continue;
       }
       trace.push(entry);
-      await driver.screenshot(join(evidenceDir, `turn-${pad(turn)}-done.png`)).catch(() => undefined);
+      await recorder.snap(driver, `turn-${pad(turn)}-done`);
       return finish("success", decision.action.summary || "model reported the goal met");
     }
     if (decision.action.kind === "stuck") {
       trace.push(entry);
-      await driver.screenshot(join(evidenceDir, `turn-${pad(turn)}-stuck.png`)).catch(() => undefined);
+      await recorder.snap(driver, `turn-${pad(turn)}-stuck`);
       return finish("stuck", decision.action.reason || "model reported no way forward");
     }
 
     // Policy first: the model proposes, and an action outside the permitted set never
     // reaches the page.
-    if (!allowed.has(decision.action.kind)) {
+    const permitted = opts.allowedActions
+      ? opts.allowedActions.includes(decision.action.kind)
+      : actionPermitted(policy, decision.action.kind);
+    if (!permitted) {
       entry.outcome = "blocked";
       entry.detail = `action '${decision.action.kind}' is not permitted for this run`;
       trace.push(entry);
@@ -338,8 +346,7 @@ export async function discover(opts: DiscoverOptions): Promise<DiscoveryRun> {
     // the old screen and concluded nothing happened.
     observation = await settle(driver, observation);
 
-    await driver.screenshot(join(evidenceDir, `turn-${pad(turn)}-${decision.action.kind}.png`))
-      .catch(() => undefined);
+    await recorder.snap(driver, `turn-${pad(turn)}-${decision.action.kind}`);
     entry.after = observation;
     trace.push(entry);
     log("acted", {
@@ -424,11 +431,4 @@ function withoutSelfReference(ladder: Target, value: string): Target | null {
 
 function pad(n: number): string {
   return String(n).padStart(2, "0");
-}
-
-function makeDir(root: string, prefix: string): string {
-  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-  const dir = join(root, `${prefix}-${stamp}`);
-  mkdirSync(dir, { recursive: true });
-  return dir;
 }

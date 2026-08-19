@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "replay": {
+    "requireApprovalFor": ["safe", "reversible", "irreversible"],
+    "originAllowlist": ["http://localhost:8080"],
+    "recoveryBudget": 3
+  },
+  "discovery": {
+    "allowedActions": ["click", "fill", "select", "read", "done", "stuck"],
+    "maxTurns": 14
+  },
+  "redaction": {
+    "redact": ["identifier", "name", "secret"]
+  }
+}
