@@ -12,6 +12,11 @@
     "discover": "node --import tsx src/cli.ts discover",
     "replay": "node --import tsx src/cli.ts replay",
     "approve": "node --import tsx src/cli.ts approve",
+    "probe": "node --import tsx src/cli.ts probe",
+    "session": "node --import tsx src/cli.ts session",
+    "takeover": "node --import tsx src/cli.ts takeover",
+    "handback": "node --import tsx src/cli.ts handback",
+    "resume": "node --import tsx src/cli.ts resume",
     "proxy": "node --import tsx proxy/server.ts"
   },
   "dependencies": {

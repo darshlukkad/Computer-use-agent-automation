@@ -24,3 +24,6 @@ __pycache__/
 
 # replay evidence from local dev runs; the curated set is committed at step 8
 evidence/replay-*
+
+# live session custody records — runtime state, and the CDP endpoint is machine-local
+sessions/

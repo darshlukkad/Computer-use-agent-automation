@@ -10,6 +10,7 @@
  * upstream changes.
  */
 import type { LocatorStrategy, Target } from "../artifact/schema.ts";
+import { fingerprint } from "../artifact/digest.ts";
 
 /**
  * One control as a human would perceive it.
@@ -51,6 +52,36 @@ export interface Observation {
   text: string;
   /** Open interstitials — the thing that derails an unattended replay. */
   dialogs: string[];
+}
+
+/**
+ * Everything about a screen that an action could plausibly change.
+ *
+ * Used in two places that both need "has anything happened?" without a fixed sleep:
+ * discovery waits for a screen to change and then go quiet, and a human handback is
+ * refused when the screen is what it was when control was taken — since resuming into
+ * an unchanged blocker just walks into the same wall again.
+ *
+ * The node list is included as well as the text, so a fill — which changes an input's
+ * value but not the page's prose — registers.
+ *
+ * Kept as raw text because discovery compares it in memory and never persists it.
+ * Anything writing it to disk must hash it first; see `observationDigest`.
+ */
+export function observationFingerprint(o: Observation): string {
+  return `${o.url} ${o.text} ${JSON.stringify(o.nodes)}`;
+}
+
+/**
+ * The same comparison, in a form that is safe to keep.
+ *
+ * The first version of the session record stored the raw fingerprint, which made every
+ * custody entry a full copy of the page — the account table included. A session record
+ * is not evidence and is not routed through the masker, so it had no business holding
+ * that. Equality is the only question ever asked of it, and a hash answers equality.
+ */
+export function observationDigest(o: Observation): string {
+  return fingerprint(observationFingerprint(o));
 }
 
 /** Which rung answered, so drift can be measured against the recorded baseline. */

@@ -19,6 +19,7 @@ import {
 } from "../policy/policy.ts";
 import { makeMasker, maskedInputs, Recorder } from "../evidence/recorder.ts";
 import { EvalContext, describe, waitFor } from "./conditions.ts";
+import { resumePlan } from "./resync.ts";
 import { classify, recoveryPermitted } from "./classify.ts";
 import {
   renderAnswer, resolveSecret, validateInputs, validateOutputs, ValueError,
@@ -50,6 +51,16 @@ export interface ReplayOptions {
    * exactly the state we want to keep.
    */
   freshSession?: boolean;
+  /**
+   * Resume an interrupted run instead of starting one.
+   *
+   * The index is where the run previously stopped, and it is a floor, not a
+   * destination — `resumePlan` reads the page to decide how much of the remaining
+   * flow a person already completed. Setting this also skips the entry navigation and
+   * the preconditions, both of which describe a fresh arrival that has already
+   * happened.
+   */
+  resumeFrom?: number;
 }
 
 /**
@@ -173,23 +184,45 @@ export async function replay(opts: ReplayOptions): Promise<ReplayResult> {
 
   const extracted: Record<string, string> = {};
 
-  try {
-    if (opts.freshSession ?? true) await driver.clearSession();
-    await driver.act({ action: "navigate", url: entry });
+  const resuming = opts.resumeFrom !== undefined;
+  let firstStep = 0;
 
-    for (const pre of artifact.preconditions) {
-      if (!(await waitFor(ctx, pre, 10_000))) {
-        return done({
-          ...base, status: "failure", code: "PRECONDITION_FAILED",
-          stepId: null,
-          expected: describe(pre, inputs),
-          observed: summarize((await ctx.observation()).text),
-          safeToRetry: true, trace,
+  try {
+    if (resuming) {
+      // The page is mid-flow and belongs to whoever was just driving it. Navigating or
+      // clearing cookies here would throw away the state we are resuming into.
+      const plan = await resumePlan(ctx, artifact, opts.resumeFrom!);
+      firstStep = plan.index;
+      recorder.log("resumed", {
+        from: opts.resumeFrom, at: plan.index, skipped: plan.skipped, complete: plan.complete,
+      });
+      for (const id of plan.skipped) {
+        const step = artifact.steps.find((s) => s.id === id)!;
+        trace.push({
+          stepId: id, action: step.action,
+          resolvedRung: null, baselineRung: step.target?.baselineRung ?? null,
+          strategy: null, drift: "none", attempts: 0, durationMs: 0,
+          outcome: "skipped",
         });
+      }
+    } else {
+      if (opts.freshSession ?? true) await driver.clearSession();
+      await driver.act({ action: "navigate", url: entry });
+
+      for (const pre of artifact.preconditions) {
+        if (!(await waitFor(ctx, pre, 10_000))) {
+          return done({
+            ...base, status: "failure", code: "PRECONDITION_FAILED",
+            stepId: null,
+            expected: describe(pre, inputs),
+            observed: summarize((await ctx.observation()).text),
+            safeToRetry: true, trace,
+          });
+        }
       }
     }
 
-    for (let i = 0; i < artifact.steps.length; i++) {
+    for (let i = firstStep; i < artifact.steps.length; i++) {
       const step = artifact.steps[i]!;
       const stepStart = Date.now();
       const entryTrace: StepTrace = {

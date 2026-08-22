@@ -14,6 +14,10 @@ import { modelFromEnv } from "./discovery/model.ts";
 import { planGoal } from "./discovery/plan.ts";
 import { approve } from "./artifact/digest.ts";
 import { capabilityRisk, loadPolicy, POLICY_PATH, requiresApproval } from "./policy/policy.ts";
+import {
+  createSession, listSessions, readSession, writeSession, SESSION_DIR, type SessionRecord,
+} from "./session/registry.ts";
+import { handback, pause, takeover } from "./hitl/handoff.ts";
 import { WebDriver } from "./surface/web/driver.ts";
 import { replay } from "./replay/engine.ts";
 import { formatMoney } from "./replay/values.ts";
@@ -59,7 +63,12 @@ const USAGE = `
            [--max-turns <n>] [--vendor <v>] [--product <p>] [--risk <class>]
            [--answer '<sentence template>']   (derived from the goal if omitted)
   replay   --id <capability> --input '<json>' [--headed] [--slow <ms>] [--video <dir>]
-           [--tenant <name>] [--unapproved] [--policy <file>]
+           [--tenant <name>] [--unapproved] [--policy <file>] [--session <session>]
+  session  serve  --id <session> [--port <n>] [--headless]   (blocks; owns the browser)
+           list
+  takeover --session <session> --actor <who>
+  handback --session <session> --actor <who> [--note '<what you did>'] [--force]
+  resume   --session <session>
   probe    --id <capability> --good '<json>' --bad '<json>'
            --code <CODE> [--class business_outcome|recoverable|hard_failure]
            [--answer '<sentence>'] [--headed]
@@ -210,6 +219,144 @@ async function main(): Promise<number> {
   }
 
   /**
+   * The session commands. These exist because §3.6 requires the human to operate the
+   * same live session the automation was using, and a browser owned by the agent
+   * process cannot outlive it — so `session serve` is a separate process whose only
+   * job is to hold the browser open. Every other command attaches over CDP, does its
+   * work, and detaches without closing anything.
+   */
+  if (command === "session") {
+    const sub = process.argv[3];
+
+    if (sub === "list") {
+      const sessions = listSessions();
+      if (!sessions.length) console.log("no sessions. start one: npm run session -- serve --id s1");
+      for (const s of sessions) {
+        const turn = s.actors.at(-1);
+        console.log(`${s.id}  owner=${s.owner}  ${s.cdpEndpoint}`);
+        console.log(`    held by ${turn?.actor ?? "?"} since ${turn?.took ?? "?"}`);
+        if (s.pending) {
+          console.log(`    waiting: ${s.pending.capabilityId} at ${s.pending.stepId} — ${s.pending.reason}`);
+        }
+        console.log(`    ${s.actors.length} control transfer(s)`);
+      }
+      return 0;
+    }
+
+    if (sub === "serve") {
+      const id = required("id");
+      const port = Number(flag("port") ?? 9222);
+      // Headed by default: the operator has to be able to see and click the page they
+      // are about to be handed. A headless session is for tests.
+      const driver = new WebDriver({ headed: !has("headless"), remoteDebuggingPort: port });
+      await driver.launch();
+      await driver.act({ action: "navigate", url: "about:blank" });
+
+      const endpoint = `http://localhost:${port}`;
+      const record = createSession(id, endpoint, process.pid);
+      console.log(`session ${id} serving on ${endpoint}  (pid ${record.pid})`);
+      console.log(`  state: ${join(SESSION_DIR, `${id}.json`)}`);
+      console.log(`\nRun against it:  npm run replay -- --id <capability> --input '{...}' --session ${id}`);
+      console.log(`Stop it with Ctrl-C; the browser dies with this process, by design.\n`);
+
+      // Block. The browser's lifetime is this process's lifetime, and that is the point:
+      // something has to own it, and it must not be whatever ran the last step.
+      await new Promise<void>((resolve) => {
+        process.on("SIGINT", () => resolve());
+        process.on("SIGTERM", () => resolve());
+      });
+      await driver.close();
+      console.log(`session ${id} ended`);
+      return 0;
+    }
+
+    console.error("usage: session serve --id <session> | session list");
+    return 2;
+  }
+
+  if (command === "takeover") {
+    const record = readSession(required("session"));
+    const actor = required("actor");
+    const driver = await attachTo(record);
+    try {
+      const { fingerprint, url } = await takeover(record, driver, actor);
+      console.log(`${actor} now holds session ${record.id}`);
+      console.log(`  the browser window is yours; it is showing ${url}`);
+      if (record.pending) {
+        console.log(`  stopped at ${record.pending.stepId}: ${record.pending.reason}`);
+      }
+      console.log(`  screen recorded as ${fingerprint}`);
+      console.log(`\nWhen you are done:\n  npm run handback -- --session ${record.id} --actor ${actor} --note '...'`);
+      return 0;
+    } finally {
+      // Detach. The browser, and therefore the operator's screen, is untouched.
+      await driver.close();
+    }
+  }
+
+  if (command === "handback") {
+    const record = readSession(required("session"));
+    const actor = required("actor");
+    if (!record.pending) throw new Error(`session ${record.id} has no run to resume`);
+    const { artifact } = loadCapability(record.pending.capabilityId);
+
+    const driver = await attachTo(record);
+    try {
+      const result = await handback(record, driver, artifact, {
+        actor,
+        ...(flag("note") ? { note: flag("note") } : {}),
+        force: has("force"),
+      });
+      console.log(`${actor} returned session ${record.id} to the automation`);
+      console.log(`  screen changed: ${result.changed}`);
+      if (result.plan.skipped.length) {
+        console.log(`  already done, will be skipped: ${result.plan.skipped.join(", ")}`);
+      }
+      const next = artifact.steps[result.plan.index];
+      console.log(`  will resume at: ${next ? next.id : "(the success checkpoint)"}`);
+      console.log(`\nContinue the run:\n  npm run resume -- --session ${record.id}`);
+      return 0;
+    } finally {
+      await driver.close();
+    }
+  }
+
+  if (command === "resume") {
+    const record = readSession(required("session"));
+    if (!record.pending) throw new Error(`session ${record.id} has no run to resume`);
+    if (record.owner !== "automation") {
+      throw new Error(
+        `session ${record.id} is still held by ${record.actors.at(-1)?.actor}. ` +
+        `Hand it back before resuming.`,
+      );
+    }
+    const { artifact } = loadCapability(record.pending.capabilityId);
+    const driver = await attachTo(record, record.pending.inputs);
+    try {
+      console.log(`resuming ${record.pending.capabilityId} on session ${record.id}`);
+      const result = await replay({
+        artifact,
+        inputs: record.pending.inputs,
+        driver,
+        tenant: record.pending.tenant,
+        // The state on this page is exactly what we are resuming into.
+        freshSession: false,
+        resumeFrom: record.pending.stepIndex,
+      });
+      report(result);
+      if (result.status !== "intervention_required") {
+        record.pending = null;
+        writeSession(record);
+      } else {
+        pause(record, artifact, result, record.pending.inputs, record.pending.tenant);
+      }
+      return result.status === "success" || result.status === "business_outcome" ? 0 : 1;
+    } finally {
+      await driver.close();
+    }
+  }
+
+  /**
    * Teach a capability what an unhappy path looks like, by driving it into one.
    *
    * Every other command produces artifacts from happy runs, and those artifacts ship
@@ -283,16 +430,23 @@ async function main(): Promise<number> {
     const videoDir = flag("video");
 
     const { artifact } = loadCapability(id);
-    const driver = new WebDriver({
-      headed: has("headed"),
-      slowMoMs: flag("slow") ? Number(flag("slow")) : undefined,
-      ...(videoDir ? { videoDir } : {}),
-    });
-    await driver.launch();
+    // A run bound to a session borrows that session's browser, so an escalation can be
+    // handed to a person instead of ending the run. Without --session the browser is
+    // this process's own and dies with it, which is correct for an unattended run.
+    const session = flag("session") ? readSession(flag("session")!) : null;
+    const driver = session
+      ? await attachTo(session, inputs)
+      : new WebDriver({
+          headed: has("headed"),
+          slowMoMs: flag("slow") ? Number(flag("slow")) : undefined,
+          ...(videoDir ? { videoDir } : {}),
+        });
+    if (!session) await driver.launch();
 
     const policy = loadPolicy(flag("policy") ?? POLICY_PATH);
     console.log(`replaying ${id} v${artifact.metadata.version}  inputs=${JSON.stringify(inputs)}`);
     console.log(`  risk ${capabilityRisk(artifact)}, policy ${flag("policy") ?? POLICY_PATH}`);
+    if (session) console.log(`  session ${session.id} (${session.cdpEndpoint})`);
     const result = await replay({
       artifact,
       inputs,
@@ -306,6 +460,14 @@ async function main(): Promise<number> {
     await driver.close();
 
     report(result);
+    if (session && result.status === "intervention_required") {
+      pause(session, artifact, result, inputs, flag("tenant") ?? null);
+      console.log(`\nThe session is paused and still open. Hand it to a person:`);
+      console.log(`  npm run takeover -- --session ${session.id} --actor you@example.com`);
+    } else if (result.status === "intervention_required") {
+      console.log(`\nThis run needed a person, but it was not bound to a session, so the`);
+      console.log(`browser is gone. Re-run with --session <id> to make the handoff possible.`);
+    }
     if (videoDir) console.log(`\nvideo: ${videoDir}`);
     // A business outcome is a legitimate answer, so it exits 0. Only a genuine
     // failure or a refusal is a non-zero exit.
@@ -320,6 +482,16 @@ function required(name: string): string {
   const v = flag(name);
   if (!v) throw new Error(`--${name} is required`);
   return v;
+}
+
+/** Join a session's existing browser. Never launches one. */
+async function attachTo(
+  record: SessionRecord,
+  inputs: Record<string, string> = {},
+): Promise<WebDriver> {
+  const driver = new WebDriver({ cdpEndpoint: record.cdpEndpoint, inputs });
+  await driver.launch();
+  return driver;
 }
 
 /** The first observation a run happened to record, by preferred name. */
@@ -387,12 +559,15 @@ function report(r: ReplayResult): void {
   }
 
   if ("trace" in r && r.trace.length) {
-    console.log("\n  step                 rung  strategy       drift     ms");
+    console.log("\n  step                 outcome    rung  strategy       drift     ms");
     for (const t of r.trace) {
       const rung = t.resolvedRung === null ? "-" : `${t.resolvedRung}/${t.baselineRung}`;
       const drift = t.drift === "none" ? "" : t.drift.toUpperCase();
+      // The outcome column exists because of `skipped`: without it, a step a person
+      // completed during a handoff is indistinguishable from one that ran in 0ms.
       console.log(
-        `  ${t.stepId.padEnd(20)} ${rung.padEnd(5)} ${(t.strategy ?? "-").padEnd(14)} ${drift.padEnd(9)} ${t.durationMs}`,
+        `  ${t.stepId.padEnd(20)} ${t.outcome.padEnd(10)} ${rung.padEnd(5)} ` +
+        `${(t.strategy ?? "-").padEnd(14)} ${drift.padEnd(9)} ${t.durationMs}`,
       );
     }
   }

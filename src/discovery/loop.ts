@@ -13,7 +13,7 @@
  * it was told. Nothing in the prompt mentions parameterisation at all.
  */
 import type { Observation, SurfaceDriver } from "../surface/driver.ts";
-import { TargetAmbiguous, TargetMissing } from "../surface/driver.ts";
+import { observationFingerprint, TargetAmbiguous, TargetMissing } from "../surface/driver.ts";
 import type { Target } from "../artifact/schema.ts";
 import { actionPermitted, loadPolicy, redacts, type Policy } from "../policy/policy.ts";
 import { makeMasker, Recorder } from "../evidence/recorder.ts";
@@ -360,11 +360,6 @@ export async function discover(opts: DiscoverOptions): Promise<DiscoveryRun> {
   return finish("exhausted", `reached the ${maxTurns}-turn limit`);
 }
 
-/** Everything about a screen that an action could plausibly change. */
-function fingerprint(o: Observation): string {
-  return `${o.url} ${o.text} ${JSON.stringify(o.nodes)}`;
-}
-
 /**
  * Re-observe until the screen has changed AND then gone quiet.
  *
@@ -388,15 +383,15 @@ async function settle(
   pollMs = 250,
 ): Promise<Observation> {
   const deadline = Date.now() + budgetMs;
-  const before = fingerprint(previous);
+  const before = observationFingerprint(previous);
 
   let latest = await driver.observe();
-  let seenChange = fingerprint(latest) !== before;
+  let seenChange = observationFingerprint(latest) !== before;
 
   while (Date.now() < deadline) {
     await new Promise((r) => setTimeout(r, pollMs));
     const next = await driver.observe();
-    const quiet = fingerprint(next) === fingerprint(latest);
+    const quiet = observationFingerprint(next) === observationFingerprint(latest);
     latest = next;
     if (!quiet) { seenChange = true; continue; }
     if (seenChange) return latest;

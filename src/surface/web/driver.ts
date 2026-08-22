@@ -27,6 +27,21 @@ export interface WebDriverOptions {
   slowMoMs?: number;
   /** Record the session to this directory; the file lands on close(). */
   videoDir?: string;
+  /**
+   * Attach to a browser somebody else is holding open, instead of launching one.
+   *
+   * This is the whole of the same-live-session requirement. `connectOverCDP` returns
+   * the running browser's existing context and page, so a handoff hands over the
+   * actual screen the run stopped on — cookies, form state, scroll position and all.
+   */
+  cdpEndpoint?: string;
+  /**
+   * Launch listening on this port so other processes can attach later.
+   *
+   * Only the long-lived session process passes this; an ordinary run does not, and so
+   * cannot be attached to. A session that can be joined is a deliberate choice.
+   */
+  remoteDebuggingPort?: number;
 }
 
 export class WebDriver implements SurfaceDriver {
@@ -35,6 +50,8 @@ export class WebDriver implements SurfaceDriver {
   private context: BrowserContext | null = null;
   private page: Page | null = null;
   private inputs: Record<string, string>;
+  /** True when this driver borrowed someone else's browser and must not close it. */
+  private attached = false;
 
   constructor(private readonly opts: WebDriverOptions = {}) {
     this.inputs = opts.inputs ?? {};
@@ -48,9 +65,33 @@ export class WebDriver implements SurfaceDriver {
   async launch(): Promise<Page> {
     if (this.page) return this.page;
     const viewport = this.opts.viewport ?? { width: 1280, height: 900 };
+
+    if (this.opts.cdpEndpoint) {
+      this.browser = await chromium.connectOverCDP(this.opts.cdpEndpoint, {
+        slowMo: this.opts.slowMoMs,
+      });
+      // The browser already has a context and a page; taking them is the point. A
+      // newContext() here would be a fresh session with none of the state, which is
+      // the shortcut §3.6 exists to rule out.
+      const context = this.browser.contexts()[0];
+      const page = context?.pages()[0];
+      if (!context || !page) {
+        throw new Error(
+          `attached to ${this.opts.cdpEndpoint} but it has no open page; the session may have ended`,
+        );
+      }
+      this.attached = true;
+      this.context = context;
+      this.page = page;
+      return this.page;
+    }
+
     this.browser = await chromium.launch({
       headless: !this.opts.headed,
       slowMo: this.opts.slowMoMs,
+      ...(this.opts.remoteDebuggingPort
+        ? { args: [`--remote-debugging-port=${this.opts.remoteDebuggingPort}`] }
+        : {}),
     });
     this.context = await this.browser.newContext({
       viewport,
@@ -172,11 +213,25 @@ export class WebDriver implements SurfaceDriver {
     }).catch(() => undefined);
   }
 
+  /**
+   * Release this driver's hold on the browser.
+   *
+   * When attached, that means detaching and nothing else. Closing the context would
+   * destroy the session for whoever owns it — including the human about to be handed
+   * control, or the run that will resume afterwards. `browser.close()` on a CDP
+   * connection drops the connection and leaves the browser running; that was verified
+   * before this code depended on it.
+   */
   async close(): Promise<void> {
-    await this.context?.close().catch(() => undefined);
-    await this.browser?.close().catch(() => undefined);
+    if (this.attached) {
+      await this.browser?.close().catch(() => undefined);
+    } else {
+      await this.context?.close().catch(() => undefined);
+      await this.browser?.close().catch(() => undefined);
+    }
     this.browser = null;
     this.context = null;
     this.page = null;
+    this.attached = false;
   }
 }

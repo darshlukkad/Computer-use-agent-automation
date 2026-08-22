@@ -59,7 +59,13 @@ export interface StepTrace {
   drift: Drift;
   attempts: number;
   durationMs: number;
-  outcome: "ok" | "recovered" | "failed";
+  /**
+   * `skipped` means the page already satisfied this step's postcondition when the run
+   * resumed, so it was not executed — a person had done it during a handoff. Recorded
+   * rather than omitted: a trace that silently lacks the login steps is indistinguishable
+   * from a run that never logged in.
+   */
+  outcome: "ok" | "recovered" | "failed" | "skipped";
 }
 
 /** A condition we handled and continued past. Reported, never swallowed. */
