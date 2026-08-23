@@ -52,6 +52,8 @@ export class WebDriver implements SurfaceDriver {
   private inputs: Record<string, string>;
   /** True when this driver borrowed someone else's browser and must not close it. */
   private attached = false;
+  /** Resolved during close(), when the recording is actually written. */
+  private savedVideo: string | null = null;
 
   constructor(private readonly opts: WebDriverOptions = {}) {
     this.inputs = opts.inputs ?? {};
@@ -101,9 +103,17 @@ export class WebDriver implements SurfaceDriver {
     return this.page;
   }
 
-  /** Path of the recorded video, available only after close(). */
-  async videoPath(): Promise<string | null> {
-    return (await this.page?.video()?.path()) ?? null;
+  /**
+   * Where the recording landed, or null if this run was not recording.
+   *
+   * Only meaningful after close(). Playwright finalises the file when the context
+   * closes, so the video handle has to be taken before that and awaited after — which
+   * is why close() resolves this rather than a getter reading `this.page`. The previous
+   * version read the page after close() had already nulled it, and so always answered
+   * null.
+   */
+  videoPath(): string | null {
+    return this.savedVideo;
   }
 
   /** Exposed for the handoff seam: a human drives this exact page. */
@@ -226,8 +236,11 @@ export class WebDriver implements SurfaceDriver {
     if (this.attached) {
       await this.browser?.close().catch(() => undefined);
     } else {
+      // Take the handle before closing; the file exists only afterwards.
+      const video = this.page?.video() ?? null;
       await this.context?.close().catch(() => undefined);
       await this.browser?.close().catch(() => undefined);
+      if (video) this.savedVideo = await video.path().catch(() => null);
     }
     this.browser = null;
     this.context = null;

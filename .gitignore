@@ -22,8 +22,10 @@ __pycache__/
 *.log
 .DS_Store
 
-# replay evidence from local dev runs; the curated set is committed at step 8
+# replay evidence and recordings from local dev runs; the curated set is committed
+# at step 8, with `git add -f` for the few that are worth a reviewer's time
 evidence/replay-*
+evidence/video/
 
 # live session custody records — runtime state, and the CDP endpoint is machine-local
 sessions/

@@ -60,11 +60,13 @@ const USAGE = `
   discover --goal '<natural language>' --id <capability> --entry <url>
            [--param k=v ...] [--output <name>:<type> ...]   (inferred if omitted)
            [--credential <role> ...] [--headed] [--slow <ms>] [--policy <file>]
+           [--video <dir>]
            [--max-turns <n>] [--vendor <v>] [--product <p>] [--risk <class>]
            [--answer '<sentence template>']   (derived from the goal if omitted)
   replay   --id <capability> --input '<json>' [--headed] [--slow <ms>] [--video <dir>]
            [--tenant <name>] [--unapproved] [--policy <file>] [--session <session>]
-  session  serve  --id <session> [--port <n>] [--headless]   (blocks; owns the browser)
+  session  serve  --id <session> [--port <n>] [--headless] [--video <dir>]
+                                                            (blocks; owns the browser)
            list
   takeover --session <session> --actor <who>
   handback --session <session> --actor <who> [--note '<what you did>'] [--force]
@@ -163,6 +165,7 @@ async function main(): Promise<number> {
     const driver = new WebDriver({
       headed: has("headed"),
       slowMoMs: flag("slow") ? Number(flag("slow")) : undefined,
+      ...(flag("video") ? { videoDir: flag("video") } : {}),
     });
     await driver.launch();
 
@@ -194,6 +197,8 @@ async function main(): Promise<number> {
       console.log(`  ${mark} ${String(t.turn).padStart(2)} ${t.action.kind.padEnd(7)}${rung.padEnd(8)} ${t.thought.slice(0, 70)}`);
     }
     console.log(`\n  evidence: ${run.evidenceDir}`);
+    const discoveryVideo = driver.videoPath();
+    if (discoveryVideo) console.log(`  video:    ${discoveryVideo}`);
     if (run.status !== "success") return 1;
 
     const artifact = compile({
@@ -248,7 +253,11 @@ async function main(): Promise<number> {
       const port = Number(flag("port") ?? 9222);
       // Headed by default: the operator has to be able to see and click the page they
       // are about to be handed. A headless session is for tests.
-      const driver = new WebDriver({ headed: !has("headless"), remoteDebuggingPort: port });
+      const driver = new WebDriver({
+        headed: !has("headless"),
+        remoteDebuggingPort: port,
+        ...(flag("video") ? { videoDir: flag("video") } : {}),
+      });
       await driver.launch();
       await driver.act({ action: "navigate", url: "about:blank" });
 
@@ -266,6 +275,9 @@ async function main(): Promise<number> {
         process.on("SIGTERM", () => resolve());
       });
       await driver.close();
+      const sessionVideo = driver.videoPath();
+      // The whole session, including everything the operator did by hand.
+      if (sessionVideo) console.log(`session video: ${sessionVideo}`);
       console.log(`session ${id} ended`);
       return 0;
     }
@@ -460,6 +472,9 @@ async function main(): Promise<number> {
     await driver.close();
 
     report(result);
+    // Printed after the report because the file only exists once the browser has closed.
+    const video = driver.videoPath();
+    if (video) console.log(`  video:    ${video}`);
     if (session && result.status === "intervention_required") {
       pause(session, artifact, result, inputs, flag("tenant") ?? null);
       console.log(`\nThe session is paused and still open. Hand it to a person:`);
@@ -468,7 +483,6 @@ async function main(): Promise<number> {
       console.log(`\nThis run needed a person, but it was not bound to a session, so the`);
       console.log(`browser is gone. Re-run with --session <id> to make the handoff possible.`);
     }
-    if (videoDir) console.log(`\nvideo: ${videoDir}`);
     // A business outcome is a legitimate answer, so it exits 0. Only a genuine
     // failure or a refusal is a non-zero exit.
     return result.status === "success" || result.status === "business_outcome" ? 0 : 1;
