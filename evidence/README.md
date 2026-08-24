@@ -75,10 +75,12 @@ npm run replay -- --id account.lookup_balance --input '{"account_number":"13122"
   --policy evidence/policy-wrong-environment.json
 ```
 
-The balances will differ from the figures recorded here: `account.transfer_funds` and
-`account.open_new_account` draw on account 13122, so replaying them changes what
-`account.lookup_balance` reports. That is the application's state, not nondeterminism — the
-decision path is fixed, and the trace proves which rung answered at each step.
+The balances will differ from the figures recorded here. `account.transfer_funds` and
+`account.open_new_account` both draw on account 13122, and these runs happened after a lot of
+them — the success above reads $882.14 where a freshly built database reads $1,100.00. That is
+the application's state, not nondeterminism: the decision path is fixed, and the trace proves
+which rung answered at each step. `./run.sh reset` rebuilds the database if you want to start
+from ParaBank's defaults.
 
 `npm start` walks through any of these interactively, including the handoff.
 

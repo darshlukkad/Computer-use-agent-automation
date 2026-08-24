@@ -25,18 +25,35 @@ thing that finds them.
 
 ## Setup
 
-Requires Node ≥ 22.6 and Docker. Nothing else is installed on the host — ParaBank is built
-inside a container.
+```bash
+./run.sh
+```
+
+Requires Node ≥ 22.6 and Docker, and nothing else — ParaBank is built inside a container, so
+no JDK or Maven touches the host. The script installs dependencies and Chromium, creates
+`.env`, builds the application, starts it, waits for it to answer, and opens the console.
+Every step is skipped when it is already done, so re-running costs about two seconds.
+
+| | |
+|---|---|
+| `./run.sh` | set up whatever is missing, then open the console |
+| `./run.sh setup` | the same, but stop once it is ready |
+| `./run.sh check` | report what is and is not ready; change nothing |
+| `./run.sh stop` | stop the application, keeping its data |
+| `./run.sh reset` | rebuild the application's database from scratch |
+| `./run.sh clean` | remove everything the script created |
+
+First run takes a few minutes, almost all of it Maven building the WAR. Afterwards it is
+seconds.
+
+<details>
+<summary>The same thing by hand</summary>
 
 ```bash
 npm install
 npx playwright install chromium
-cp .env.example .env          # then edit; see below
-```
+cp .env.example .env
 
-### The target application
-
-```bash
 cd ParaBank-Mock-app
 docker run --rm -u "$(id -u):$(id -g)" \
   -v "$PWD":/app -v "$PWD/.m2":/var/maven/.m2 -w /app \
@@ -48,8 +65,9 @@ docker run -d --name parabank -p 8080:8080 parabank-local
 cd ..
 ```
 
-`http://localhost:8080/parabank/index.htm` should answer within a minute; the app builds its
-own embedded database on first request. Afterwards, `docker start parabank`.
+`http://localhost:8080/parabank/index.htm` answers within a minute or two on a cold container;
+the app builds its own embedded database on first request. Afterwards, `docker start parabank`.
+</details>
 
 ### Configuration
 
