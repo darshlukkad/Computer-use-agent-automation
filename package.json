@@ -18,8 +18,7 @@
     "session": "node --import tsx src/cli.ts session",
     "takeover": "node --import tsx src/cli.ts takeover",
     "handback": "node --import tsx src/cli.ts handback",
-    "resume": "node --import tsx src/cli.ts resume",
-    "proxy": "node --import tsx proxy/server.ts"
+    "resume": "node --import tsx src/cli.ts resume"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.117.1",

@@ -1,0 +1,47 @@
+{
+  "apiVersion": "cua.overlay/v1",
+  "kind": "TenantOverlay",
+  "metadata": {
+    "id": "summit.account_lookup_balance",
+    "tenant": "summit",
+    "appliesTo": {
+      "capabilityId": "account.lookup_balance",
+      "versionRange": ">=1.0.0 <2.0.0"
+    },
+    "notes": "Summit Credit Union runs the same ParaBank build with its own copy deck and a different servicing path. Everything that differs is below; the flow, the risk classes, the checkpoints and the exception rules all stay in the base artifact, so a fix there reaches Summit without an edit here. Illustrative: §3.7 puts multi-tenant execution out of scope, so nothing merges this at runtime."
+  },
+  "compatibility": {
+    "vendor": "parasoft",
+    "product": "parabank"
+  },
+  "entryPath": "/parabank/cu/member-login.htm",
+  "originAllowlist": [
+    "https://servicing.summitcu.test"
+  ],
+  "copy": {
+    "Username": "Member Number",
+    "Password": "PIN",
+    "Log In": "Sign On",
+    "Customer Login": "Member Sign On",
+    "Account Services": "Member Services",
+    "Balance*": "Current Balance"
+  },
+  "locators": {
+    "s5_read_balance": {
+      "strategies": [
+        {
+          "kind": "table_cell",
+          "header": "Current Balance",
+          "rowMatch": "${inputs.account_number}"
+        },
+        {
+          "kind": "nearby_text",
+          "text": "Current Balance",
+          "direction": "below"
+        }
+      ],
+      "baselineRung": 1,
+      "rationale": "Summit renamed the column and dropped the asterisk, so the base artifact's table_cell header does not match. Still located by column and row rather than position, for the same reason as the base: stepping from a header to the next cell lands in the first row, which on a live run read one account's number as another account's balance."
+    }
+  }
+}

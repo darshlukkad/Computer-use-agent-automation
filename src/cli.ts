@@ -65,12 +65,13 @@ const USAGE = `
            [--answer '<sentence template>']   (derived from the goal if omitted)
   replay   --id <capability> --input '<json>' [--headed] [--slow <ms>] [--video <dir>]
            [--tenant <name>] [--unapproved] [--policy <file>] [--session <session>]
+           [--evidence-root <dir>]
   session  serve  --id <session> [--port <n>] [--headless] [--video <dir>]
                                                             (blocks; owns the browser)
            list
   takeover --session <session> --actor <who>
   handback --session <session> --actor <who> [--note '<what you did>'] [--force]
-  resume   --session <session>
+  resume   --session <session> [--evidence-root <dir>]
   probe    --id <capability> --good '<json>' --bad '<json>'
            --code <CODE> [--class business_outcome|recoverable|hard_failure]
            [--answer '<sentence>'] [--headed]
@@ -186,6 +187,7 @@ async function main(): Promise<number> {
       credentials: repeated("credential"),
       requiredOutputs,
       maxTurns: flag("max-turns") ? Number(flag("max-turns")) : undefined,
+      ...(flag("evidence-root") ? { evidenceRoot: flag("evidence-root") } : {}),
     });
     await driver.close();
 
@@ -354,6 +356,7 @@ async function main(): Promise<number> {
         // The state on this page is exactly what we are resuming into.
         freshSession: false,
         resumeFrom: record.pending.stepIndex,
+        ...(flag("evidence-root") ? { evidenceRoot: flag("evidence-root") } : {}),
       });
       report(result);
       if (result.status !== "intervention_required") {
@@ -465,6 +468,9 @@ async function main(): Promise<number> {
       driver,
       policy,
       tenant: flag("tenant") ?? null,
+      // Lets a run be filed somewhere meaningful — `evidence/05-business-outcome`
+      // rather than a timestamp among forty others.
+      ...(flag("evidence-root") ? { evidenceRoot: flag("evidence-root") } : {}),
       // --unapproved is an explicit override for testing a draft; without it the
       // policy decides, by the capability's risk.
       ...(has("unapproved") ? { requireApproved: false } : {}),

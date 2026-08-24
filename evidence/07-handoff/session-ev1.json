@@ -1,0 +1,32 @@
+{
+  "id": "ev1",
+  "createdAt": "2026-08-24T16:09:30.667Z",
+  "cdpEndpoint": "http://localhost:9222",
+  "pid": 80159,
+  "owner": "automation",
+  "pending": null,
+  "actors": [
+    {
+      "actor": "automation",
+      "role": "automation",
+      "took": "2026-08-24T16:09:30.667Z",
+      "released": "2026-08-24T16:15:53.775Z",
+      "fingerprintAfter": "fp_bbb6d84a5efe"
+    },
+    {
+      "actor": "alice@bank.test",
+      "role": "human",
+      "took": "2026-08-24T16:15:53.775Z",
+      "fingerprintBefore": "fp_bbb6d84a5efe",
+      "released": "2026-08-24T16:15:59.679Z",
+      "fingerprintAfter": "fp_48936a27677b",
+      "note": "Vendor renamed the sign-in control; clicked it by hand."
+    },
+    {
+      "actor": "automation",
+      "role": "automation",
+      "took": "2026-08-24T16:15:59.679Z",
+      "fingerprintBefore": "fp_48936a27677b"
+    }
+  ]
+}

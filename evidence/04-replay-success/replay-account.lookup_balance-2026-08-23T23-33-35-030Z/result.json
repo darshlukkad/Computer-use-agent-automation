@@ -1,0 +1,73 @@
+{
+  "capabilityId": "account.lookup_balance",
+  "capabilityVersion": "1.0.0",
+  "tenant": null,
+  "evidenceDir": "evidence/04-replay-success/replay-account.lookup_balance-2026-08-23T23-33-35-030Z",
+  "status": "success",
+  "outputs": {
+    "current_balance": {
+      "currency": "USD",
+      "minorUnits": 88214
+    }
+  },
+  "answer": "The current balance for account [account_number:redacted] is $882.14.",
+  "recoveries": [],
+  "trace": [
+    {
+      "stepId": "s1_open",
+      "action": "navigate",
+      "resolvedRung": null,
+      "baselineRung": null,
+      "strategy": null,
+      "drift": "none",
+      "attempts": 1,
+      "durationMs": 35,
+      "outcome": "ok"
+    },
+    {
+      "stepId": "s2_fill_username",
+      "action": "fill",
+      "resolvedRung": 2,
+      "baselineRung": 2,
+      "strategy": "nearby_text",
+      "drift": "none",
+      "attempts": 1,
+      "durationMs": 140,
+      "outcome": "ok"
+    },
+    {
+      "stepId": "s3_fill_password",
+      "action": "fill",
+      "resolvedRung": 2,
+      "baselineRung": 2,
+      "strategy": "nearby_text",
+      "drift": "none",
+      "attempts": 1,
+      "durationMs": 78,
+      "outcome": "ok"
+    },
+    {
+      "stepId": "s4_click_log_in",
+      "action": "click",
+      "resolvedRung": 1,
+      "baselineRung": 1,
+      "strategy": "role_name",
+      "drift": "none",
+      "attempts": 1,
+      "durationMs": 227,
+      "outcome": "ok"
+    },
+    {
+      "stepId": "s5_read_balance",
+      "action": "read",
+      "resolvedRung": 1,
+      "baselineRung": 1,
+      "strategy": "table_cell",
+      "drift": "none",
+      "attempts": 1,
+      "durationMs": 335,
+      "outcome": "ok"
+    }
+  ],
+  "durationMs": 1467
+}

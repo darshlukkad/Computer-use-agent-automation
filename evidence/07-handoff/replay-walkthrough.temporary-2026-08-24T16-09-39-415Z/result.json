@@ -1,0 +1,58 @@
+{
+  "capabilityId": "walkthrough.temporary",
+  "capabilityVersion": "1.0.0",
+  "tenant": null,
+  "evidenceDir": "evidence/07-handoff/replay-walkthrough.temporary-2026-08-24T16-09-39-415Z",
+  "status": "intervention_required",
+  "interventionId": "iv_mt7flzby",
+  "code": "TARGET_MISSING",
+  "reason": "step declares onError=escalate; expected no rung matched. tried: role_name(button, \"Sign On With Passkey\")=0",
+  "stepId": "s4_click_log_in",
+  "trace": [
+    {
+      "stepId": "s1_open",
+      "action": "navigate",
+      "resolvedRung": null,
+      "baselineRung": null,
+      "strategy": null,
+      "drift": "none",
+      "attempts": 1,
+      "durationMs": 29,
+      "outcome": "ok"
+    },
+    {
+      "stepId": "s2_fill_username",
+      "action": "fill",
+      "resolvedRung": 2,
+      "baselineRung": 2,
+      "strategy": "nearby_text",
+      "drift": "none",
+      "attempts": 1,
+      "durationMs": 168,
+      "outcome": "ok"
+    },
+    {
+      "stepId": "s3_fill_password",
+      "action": "fill",
+      "resolvedRung": 2,
+      "baselineRung": 2,
+      "strategy": "nearby_text",
+      "drift": "none",
+      "attempts": 1,
+      "durationMs": 104,
+      "outcome": "ok"
+    },
+    {
+      "stepId": "s4_click_log_in",
+      "action": "click",
+      "resolvedRung": null,
+      "baselineRung": 1,
+      "strategy": null,
+      "drift": "none",
+      "attempts": 1,
+      "durationMs": 0,
+      "outcome": "failed"
+    }
+  ],
+  "durationMs": 1480
+}

@@ -1,0 +1,2 @@
+{"at":"2026-08-24T16:16:01.455Z","event":"started","capabilityId":"walkthrough.temporary","version":"1.0.0","risk":"safe","tenant":null,"requireApproved":true}
+{"at":4,"event":"resumed","from":3,"skipped":["s4_click_log_in"],"complete":true}

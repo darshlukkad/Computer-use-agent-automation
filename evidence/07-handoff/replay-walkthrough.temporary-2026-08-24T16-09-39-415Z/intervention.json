@@ -1,0 +1,161 @@
+{
+  "url": "http://localhost:8080/parabank/index.htm",
+  "title": "ParaBank | Welcome | Online Banking",
+  "nodes": [
+    {
+      "role": "link",
+      "name": "About Us"
+    },
+    {
+      "role": "link",
+      "name": "Services"
+    },
+    {
+      "role": "link",
+      "name": "Products"
+    },
+    {
+      "role": "link",
+      "name": "Locations"
+    },
+    {
+      "role": "link",
+      "name": "Admin Page"
+    },
+    {
+      "role": "link",
+      "name": "home"
+    },
+    {
+      "role": "link",
+      "name": "about"
+    },
+    {
+      "role": "link",
+      "name": "contact"
+    },
+    {
+      "role": "heading",
+      "name": "Customer Login"
+    },
+    {
+      "role": "textbox",
+      "name": "",
+      "value": "john",
+      "nearbyText": "Username"
+    },
+    {
+      "role": "textbox",
+      "name": "",
+      "nearbyText": "Password"
+    },
+    {
+      "role": "button",
+      "name": "Log In"
+    },
+    {
+      "role": "paragraph",
+      "name": "",
+      "value": "Forgot login info?",
+      "nearbyText": "Password"
+    },
+    {
+      "role": "link",
+      "name": "Forgot login info?"
+    },
+    {
+      "role": "link",
+      "name": "Register"
+    },
+    {
+      "role": "link",
+      "name": "Withdraw Funds"
+    },
+    {
+      "role": "link",
+      "name": "Transfer Funds"
+    },
+    {
+      "role": "link",
+      "name": "Check Balances"
+    },
+    {
+      "role": "link",
+      "name": "Make Deposits"
+    },
+    {
+      "role": "link",
+      "name": "Bill Pay"
+    },
+    {
+      "role": "link",
+      "name": "Account History"
+    },
+    {
+      "role": "link",
+      "name": "Transfer Funds"
+    },
+    {
+      "role": "link",
+      "name": "Read More"
+    },
+    {
+      "role": "heading",
+      "name": "Latest News"
+    },
+    {
+      "role": "link",
+      "name": "ParaBank Is Now Re-Opened"
+    },
+    {
+      "role": "link",
+      "name": "New! Online Bill Pay"
+    },
+    {
+      "role": "link",
+      "name": "New! Online Account Transfers"
+    },
+    {
+      "role": "link",
+      "name": "Read More"
+    },
+    {
+      "role": "link",
+      "name": "Home"
+    },
+    {
+      "role": "link",
+      "name": "About Us"
+    },
+    {
+      "role": "link",
+      "name": "Services"
+    },
+    {
+      "role": "link",
+      "name": "Products"
+    },
+    {
+      "role": "link",
+      "name": "Locations"
+    },
+    {
+      "role": "link",
+      "name": "Forum"
+    },
+    {
+      "role": "link",
+      "name": "Site Map"
+    },
+    {
+      "role": "link",
+      "name": "Contact Us"
+    },
+    {
+      "role": "link",
+      "name": "www.parasoft.com"
+    }
+  ],
+  "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nCustomer Login\nUsername\nPassword\nForgot login info?\nRegister\nATM Services\nWithdraw Funds\nTransfer Funds\nCheck Balances\nMake Deposits\nOnline Services\nBill Pay\nAccount History\nTransfer Funds\nREAD MORE\nLATEST NEWS\n08/16/2026\nParaBank Is Now Re-Opened\nNew! Online Bill Pay\nNew! Online Account Transfers\nREAD MORE\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+  "dialogs": []
+}
