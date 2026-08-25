@@ -127,6 +127,21 @@ build_war() {
   fi
   step "Building ParaBank (Maven runs in a container; no JDK on the host)"
   echo "    first time only, a few minutes"
+
+  # Create the dependency cache ourselves, first.
+  #
+  # Docker creates a missing bind-mount source as root, and the container runs as this
+  # user so it can then write nothing — Maven fails with "Could not create local
+  # repository", which reads like a Maven problem and is not. Creating the directory
+  # here means it is owned by whoever ran this script.
+  mkdir -p "${APP_DIR}/.m2"
+  if [ ! -w "${APP_DIR}/.m2" ]; then
+    die "${APP_DIR}/.m2 exists but is not writable by you — most likely root-owned from an
+    earlier run. Remove it and try again:
+
+    sudo rm -rf ${APP_DIR}/.m2"
+  fi
+
   docker run --rm -u "$(id -u):$(id -g)" \
     -v "$PWD/${APP_DIR}":/app -v "$PWD/${APP_DIR}/.m2":/var/maven/.m2 -w /app \
     -e MAVEN_CONFIG=/var/maven/.m2 \
