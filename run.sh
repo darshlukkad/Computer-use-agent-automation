@@ -208,8 +208,13 @@ start_container() {
   esac
 }
 
+# Follow redirects, and not as a nicety: ParaBank builds its database lazily, and a
+# first request to index.htm 302s to initializeDB.htm, which does the work and redirects
+# back to a 200. A poll that does not follow that never triggers the initialisation it
+# is waiting for — it asks, is told to go initialise, declines, and asks again until it
+# gives up. The check was preventing the readiness it was checking for.
 is_up() {
-  [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 "$URL" 2>/dev/null)" = "200" ]
+  [ "$(curl -sL -o /dev/null -w '%{http_code}' --max-time 10 "$URL" 2>/dev/null)" = "200" ]
 }
 
 wait_for_app() {

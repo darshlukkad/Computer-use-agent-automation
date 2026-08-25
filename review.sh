@@ -70,7 +70,12 @@ expect() {
 printf '\n%sComputer-use automation — review%s\n' "$BOLD" "$RESET"
 printf 'Every claim below is checked against a live run. About four minutes.\n'
 
-if ! curl -s -o /dev/null --max-time 3 http://localhost:8080/parabank/index.htm; then
+# -L, and a status check rather than curl's exit code. A 302 is a successful request as
+# far as curl is concerned, and ParaBank answers the first request with one — it redirects
+# to initializeDB.htm to build its database. Without following that, this would pass
+# preflight against an application that is not ready, and every section below would fail.
+if [ "$(curl -sL -o /dev/null -w '%{http_code}' --max-time 10 \
+        http://localhost:8080/parabank/index.htm 2>/dev/null)" != "200" ]; then
   printf '\n%sParaBank is not running.%s Start everything with:\n\n    ./run.sh setup\n\n' "$RED" "$RESET"
   exit 1
 fi
