@@ -32,6 +32,11 @@ else
   BOLD=""; DIM=""; RED=""; GREEN=""; YELLOW=""; RESET=""
 fi
 
+# `set -e` exits without a word about why, which for a setup script is the difference
+# between a bug someone can report and one they can only shrug at. This is not
+# hypothetical: a clean-then-build died here for seven seconds and printed nothing.
+trap 'printf "\n%serror:%s line %s: %s\n\n" "${RED}" "${RESET}" "$LINENO" "$BASH_COMMAND" >&2' ERR
+
 step()  { printf '\n%s==>%s %s\n' "$BOLD" "$RESET" "$1"; }
 ok()    { printf '    %s✓%s %s\n' "$GREEN" "$RESET" "$1"; }
 skip()  { printf '    %s·%s %s\n' "$DIM" "$RESET" "$1"; }
@@ -121,8 +126,15 @@ write_env() {
 # --- the target application ------------------------------------------------
 
 # The WAR Maven actually produced, if any. Named from the POM, so the version moves.
+#
+# The early return matters: after a clean there is no target/ at all, and `find` on a
+# missing directory exits non-zero. Under `pipefail` that failure propagates through the
+# pipe, `set -e` takes it as fatal, and the script dies here — before printing anything,
+# which is how a clean-then-build produced a bare "exit 1" and no explanation.
 produced_war() {
-  find "${APP_DIR}/target" -maxdepth 1 -name 'parabank-*.war' ! -name '*-sources*' 2>/dev/null | head -1
+  [ -d "${APP_DIR}/target" ] || return 0
+  find "${APP_DIR}/target" -maxdepth 1 -name 'parabank-*.war' ! -name '*-sources*' 2>/dev/null \
+    | head -1 || true
 }
 
 build_war() {
@@ -189,8 +201,12 @@ container_state() {
   # `docker inspect` on a missing container writes its error to stderr AND a bare
   # newline to stdout, so the obvious `... || echo absent` yields "\nabsent", which
   # matches no case arm and sent a first-time setup down the "start it" path.
+  # `|| true` because docker inspect exits non-zero for a missing container and pipefail
+  # propagates that. It happens to be harmless at both call sites today — a `case` and a
+  # `printf` argument, neither of which trips `set -e` — but assigning it to a variable
+  # would, which is exactly the shape that killed produced_war().
   local state
-  state="$(docker inspect -f '{{.State.Status}}' "$CONTAINER" 2>/dev/null | tr -d '[:space:]')"
+  state="$(docker inspect -f '{{.State.Status}}' "$CONTAINER" 2>/dev/null | tr -d '[:space:]' || true)"
   echo "${state:-absent}"
 }
 
