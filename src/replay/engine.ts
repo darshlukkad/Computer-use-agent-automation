@@ -9,17 +9,20 @@
  * gated on what the step does to the world rather than on how many attempts are
  * left.
  */
-import { mkdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
 import type { Capability, Step } from "../artifact/schema.ts";
 import { verifyApproval } from "../artifact/digest.ts";
 import type { ReplayResult, Recovery, StepTrace } from "../result/types.ts";
 import { classifyDrift, isRetrySafe } from "../result/types.ts";
 import { TargetAmbiguous, TargetMissing, type SurfaceDriver } from "../surface/driver.ts";
+import {
+  capabilityRisk, loadPolicy, originPermitted, requiresApproval, type Policy,
+} from "../policy/policy.ts";
+import { makeMasker, maskedInputs, Recorder } from "../evidence/recorder.ts";
 import { EvalContext, describe, waitFor } from "./conditions.ts";
+import { resumePlan } from "./resync.ts";
 import { classify, recoveryPermitted } from "./classify.ts";
 import {
-  redactAnswer, renderAnswer, resolveSecret, validateInputs, validateOutputs, ValueError,
+  renderAnswer, resolveSecret, validateInputs, validateOutputs, ValueError,
 } from "./values.ts";
 
 export interface ReplayOptions {
@@ -30,7 +33,12 @@ export interface ReplayOptions {
   /** Set false to run a capability still in draft (discovery, manual testing). */
   requireApproved?: boolean;
   evidenceRoot?: string;
-  /** Total recoveries permitted across the run, so a flapping page cannot loop. */
+  /** Guardrails. Read from policy.json unless a caller supplies its own. */
+  policy?: Policy;
+  /**
+   * Total recoveries permitted across the run, so a flapping page cannot loop.
+   * Defaults to the policy's budget.
+   */
   recoveryBudget?: number;
   /**
    * Discard cookies before starting, so a run cannot inherit a session from the
@@ -43,6 +51,16 @@ export interface ReplayOptions {
    * exactly the state we want to keep.
    */
   freshSession?: boolean;
+  /**
+   * Resume an interrupted run instead of starting one.
+   *
+   * The index is where the run previously stopped, and it is a floor, not a
+   * destination — `resumePlan` reads the page to decide how much of the remaining
+   * flow a person already completed. Setting this also skips the entry navigation and
+   * the preconditions, both of which describe a fresh arrival that has already
+   * happened.
+   */
+  resumeFrom?: number;
 }
 
 /**
@@ -57,12 +75,14 @@ export async function replay(opts: ReplayOptions): Promise<ReplayResult> {
   const started = Date.now();
   const { artifact, driver } = opts;
   const tenant = opts.tenant ?? null;
-  const requireApproved = opts.requireApproved ?? true;
-  let recoveryBudget = opts.recoveryBudget ?? 3;
+  const policy = opts.policy ?? loadPolicy();
+  const requireApproved = opts.requireApproved ?? requiresApproval(policy, artifact);
+  let recoveryBudget = opts.recoveryBudget ?? policy.replay.recoveryBudget;
 
   const trace: StepTrace[] = [];
   const recoveries: Recovery[] = [];
-  const evidenceDir = makeEvidenceDir(opts.evidenceRoot ?? "evidence", artifact.metadata.id);
+  const recorder = new Recorder(opts.evidenceRoot ?? "evidence", `replay-${artifact.metadata.id}`);
+  const evidenceDir = recorder.dir;
 
   const base = {
     capabilityId: artifact.metadata.id,
@@ -71,25 +91,26 @@ export async function replay(opts: ReplayOptions): Promise<ReplayResult> {
     evidenceDir,
   };
   /**
-   * The caller gets the real result; the evidence file gets a copy with any value
-   * the artifact tagged as regulated masked out. An answer sentence necessarily
-   * embeds the identifier it was asked about, and §3.4 forbids persisting that — so
-   * the run stays debuggable without an account number landing on disk.
+   * The caller gets the real result; disk gets a masked copy. An answer sentence
+   * necessarily embeds the identifier it was asked about, and §3.4 forbids persisting
+   * that — so the run stays debuggable without an account number landing on disk.
+   * The recorder masks everything it writes, so this is the whole of it.
    */
   const done = (r: PartialResult): ReplayResult => {
     const result = { ...r, durationMs: Date.now() - started } as ReplayResult;
-    const persisted =
-      "answer" in result && result.answer
-        ? {
-            ...result,
-            answer: redactAnswer(result.answer, opts.inputs, artifact.signature.inputs),
-          }
-        : result;
-    writeFileSync(join(evidenceDir, "result.json"), `${JSON.stringify(persisted, null, 2)}\n`);
+    recorder.write("result.json", result);
     return result;
   };
 
   // --- gates that run before a browser is touched --------------------------
+
+  recorder.log("started", {
+    capabilityId: artifact.metadata.id,
+    version: artifact.metadata.version,
+    risk: capabilityRisk(artifact),
+    tenant,
+    requireApproved,
+  });
 
   if (requireApproved) {
     const approval = verifyApproval(artifact);
@@ -117,6 +138,9 @@ export async function replay(opts: ReplayOptions): Promise<ReplayResult> {
     });
   }
 
+  // Now that the inputs are known, everything written from here on is masked.
+  recorder.setMask(makeMasker(maskedInputs(policy, artifact.signature.inputs, inputs)));
+
   const entry = new URL(artifact.entry.path, artifact.entry.originAllowlist[0]!).toString();
   if (!artifact.entry.originAllowlist.some((o) => entry.startsWith(o))) {
     return done({
@@ -125,31 +149,80 @@ export async function replay(opts: ReplayOptions): Promise<ReplayResult> {
       reason: `entry ${entry} is outside the capability's allowlist`,
     });
   }
+  // The deployment's own allowlist, on top of the artifact's. An artifact approved for
+  // a staging core does not become permitted here just because it says it is.
+  if (!originPermitted(policy, entry)) {
+    return done({
+      ...base, status: "blocked",
+      policyRule: "policy-origin-allowlist",
+      reason:
+        `entry ${entry} is outside the deployment's allowlist ` +
+        `(${policy.replay.originAllowlist.join(", ")})`,
+    });
+  }
 
   const ctx = new EvalContext(driver, inputs);
   if ("setInputs" in driver) (driver as { setInputs(i: Record<string, string>): void }).setInputs(inputs);
+
+  /**
+   * A picture and the machine-readable state behind it.
+   *
+   * The screenshot is for a person; the observation is for the outcome probe, which
+   * turns a run that genuinely reached an unhappy path into a verified exception rule.
+   * Recording only the image would mean that rule had to be written from a human
+   * reading a PNG — which is exactly the fabrication the rest of this system avoids.
+   */
+  const capture = async (name: string): Promise<void> => {
+    await recorder.snap(driver, name);
+    await ctx
+      .observation()
+      .then((o) => recorder.write(`${name}.json`, o))
+      .catch(() => undefined);
+  };
 
   // --- the run -------------------------------------------------------------
 
   const extracted: Record<string, string> = {};
 
-  try {
-    if (opts.freshSession ?? true) await driver.clearSession();
-    await driver.act({ action: "navigate", url: entry });
+  const resuming = opts.resumeFrom !== undefined;
+  let firstStep = 0;
 
-    for (const pre of artifact.preconditions) {
-      if (!(await waitFor(ctx, pre, 10_000))) {
-        return done({
-          ...base, status: "failure", code: "PRECONDITION_FAILED",
-          stepId: null,
-          expected: describe(pre, inputs),
-          observed: summarize((await ctx.observation()).text),
-          safeToRetry: true, trace,
+  try {
+    if (resuming) {
+      // The page is mid-flow and belongs to whoever was just driving it. Navigating or
+      // clearing cookies here would throw away the state we are resuming into.
+      const plan = await resumePlan(ctx, artifact, opts.resumeFrom!);
+      firstStep = plan.index;
+      recorder.log("resumed", {
+        from: opts.resumeFrom, at: plan.index, skipped: plan.skipped, complete: plan.complete,
+      });
+      for (const id of plan.skipped) {
+        const step = artifact.steps.find((s) => s.id === id)!;
+        trace.push({
+          stepId: id, action: step.action,
+          resolvedRung: null, baselineRung: step.target?.baselineRung ?? null,
+          strategy: null, drift: "none", attempts: 0, durationMs: 0,
+          outcome: "skipped",
         });
+      }
+    } else {
+      if (opts.freshSession ?? true) await driver.clearSession();
+      await driver.act({ action: "navigate", url: entry });
+
+      for (const pre of artifact.preconditions) {
+        if (!(await waitFor(ctx, pre, 10_000))) {
+          return done({
+            ...base, status: "failure", code: "PRECONDITION_FAILED",
+            stepId: null,
+            expected: describe(pre, inputs),
+            observed: summarize((await ctx.observation()).text),
+            safeToRetry: true, trace,
+          });
+        }
       }
     }
 
-    for (let i = 0; i < artifact.steps.length; i++) {
+    for (let i = firstStep; i < artifact.steps.length; i++) {
       const step = artifact.steps[i]!;
       const stepStart = Date.now();
       const entryTrace: StepTrace = {
@@ -246,6 +319,10 @@ export async function replay(opts: ReplayOptions): Promise<ReplayResult> {
     const answer = artifact.success.answer
       ? renderAnswer(artifact.success.answer, { inputs, outputs })
       : undefined;
+    // The happy path is recorded too, and not only for symmetry: the outcome probe
+    // needs to know what success looks like before it can say what distinguishes an
+    // unhappy path from it.
+    await capture("success");
     return done({ ...base, status: "success", outputs, answer, recoveries, trace });
   } catch (e) {
     if (e instanceof ValueError) {
@@ -256,7 +333,7 @@ export async function replay(opts: ReplayOptions): Promise<ReplayResult> {
         observed: e.message, safeToRetry: true, trace,
       });
     }
-    await driver.screenshot(join(evidenceDir, "failure.png")).catch(() => undefined);
+    await capture("failure");
     return done({
       ...base, status: "failure", code: "INTERNAL",
       stepId: trace.at(-1)?.stepId ?? null,
@@ -280,6 +357,7 @@ export async function replay(opts: ReplayOptions): Promise<ReplayResult> {
 
     if (verdict.class === "business_outcome") {
       // The automation worked; the answer is negative. Not a failure.
+      await capture("unhappy");
       return done({
         ...base, status: "business_outcome",
         code: verdict.code, observed: verdict.observed,
@@ -293,7 +371,7 @@ export async function replay(opts: ReplayOptions): Promise<ReplayResult> {
     if (verdict.class === "recoverable") {
       const allowed = recoveryPermitted(verdict.recover, artifact, index);
       if (!allowed.permitted) {
-        await driver.screenshot(join(evidenceDir, "intervention.png")).catch(() => undefined);
+        await capture("intervention");
         return done({
           ...base, status: "intervention_required",
           interventionId: `iv_${Date.now().toString(36)}`,
@@ -303,7 +381,7 @@ export async function replay(opts: ReplayOptions): Promise<ReplayResult> {
         });
       }
       if (recoveryBudget <= 0) {
-        await driver.screenshot(join(evidenceDir, "intervention.png")).catch(() => undefined);
+        await capture("intervention");
         return done({
           ...base, status: "intervention_required",
           interventionId: `iv_${Date.now().toString(36)}`,
@@ -327,7 +405,7 @@ export async function replay(opts: ReplayOptions): Promise<ReplayResult> {
     // confirmation needing sign-off, or a screen that occasionally demands a second
     // factor. Escalating keeps the session alive so the run can still complete.
     if (step?.onError === "escalate") {
-      await driver.screenshot(join(evidenceDir, "intervention.png")).catch(() => undefined);
+      await capture("intervention");
       return done({
         ...base, status: "intervention_required",
         interventionId: `iv_${Date.now().toString(36)}`,
@@ -337,7 +415,7 @@ export async function replay(opts: ReplayOptions): Promise<ReplayResult> {
       });
     }
 
-    await driver.screenshot(join(evidenceDir, "failure.png")).catch(() => undefined);
+    await capture("failure");
     return done({
       ...base, status: "failure", code,
       stepId: step?.id ?? null,
@@ -410,11 +488,4 @@ function valueOf(step: Step, inputs: Record<string, string>, tenant: string | nu
 
 function summarize(text: string): string {
   return text.replace(/\s+/g, " ").trim().slice(0, 240);
-}
-
-function makeEvidenceDir(root: string, capabilityId: string): string {
-  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-  const dir = join(root, `replay-${capabilityId}-${stamp}`);
-  mkdirSync(dir, { recursive: true });
-  return dir;
 }

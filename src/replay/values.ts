@@ -57,35 +57,26 @@ export function renderAnswer(
   template: string,
   scope: { inputs: Record<string, string>; outputs?: Record<string, unknown> },
 ): string {
-  return template.replace(
+  const rendered = template.replace(
     /\$\{(inputs|outputs)\.([A-Za-z_][A-Za-z0-9_]*)\}/g,
     (whole, bucket: string, key: string) => {
       const source = bucket === "inputs" ? scope.inputs : scope.outputs ?? {};
       return key in source ? display(source[key]) : whole;
     },
   );
+  // A template ending in a placeholder cannot know whether the value it interpolates
+  // already ends a sentence. ParaBank's transfer confirmation does, which rendered as
+  // "…to account #12567..". Neither the template nor the application is wrong, so this
+  // is fixed where the two meet rather than by asking a model to guess.
+  return rendered.replace(/([.!?])[.!?]+$/, "$1");
 }
 
 /**
- * Mask values of fields the artifact tagged as regulated before an answer is
- * written to disk. The caller gets the real sentence; the evidence file gets a
- * fingerprint, so a run stays debuggable without persisting an account number.
- *
- * This is what makes the `pii` tags load-bearing rather than decorative.
+ * Redaction used to live here, masking exactly one string: the answer sentence. It
+ * now lives in the evidence recorder, which masks everything on its way to disk —
+ * the trace, the log, the observations — because a caller cannot forget to redact
+ * something it never handles. See `evidence/recorder.ts`.
  */
-export function redactAnswer(
-  answer: string,
-  inputs: Record<string, string>,
-  spec: Record<string, { pii?: string }>,
-): string {
-  let out = answer;
-  for (const [name, value] of Object.entries(inputs)) {
-    const pii = spec[name]?.pii;
-    if (!value || pii === "none" || pii === undefined) continue;
-    out = out.split(value).join(`[${name}:redacted]`);
-  }
-  return out;
-}
 
 /** Values enter the browser as strings; this is the sole conversion point. */
 export function validateInputs(

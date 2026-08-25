@@ -363,17 +363,27 @@ for entitlements on the core system.
 
 ---
 
-## 7. The two capabilities
+## 7. The four capabilities
 
-| | `account.lookup_balance` | `account.transfer_funds` |
-|---|---|---|
-| Flow | login → overview → read balance for account | login → transfer → confirmation |
-| Inputs | `accountId` | `fromAccount`, `toAccount`, `amount` |
-| Outputs | `balance` (money), `accountId` | `confirmationText`, `amount` |
-| Effect | `observation` | `irreversible_mutation` |
-| Risk | `safe` | `irreversible` |
-| Status | approvable | **draft — blocked until approved** |
-| Business outcome | account not in list | insufficient funds |
+All four were produced by live discovery runs; the field names below are the ones the
+runs actually settled on, not ones planned in advance.
+
+| | `account.lookup_balance` | `account.transfer_funds` | `account.open_new_account` | `account.request_loan` |
+|---|---|---|---|---|
+| Flow | login → overview → read balance | login → transfer → confirmation | login → open account → confirmation | login → loan form → read status |
+| Inputs | `account_number` | `from_account`, `to_account`, `amount` | `funding_account_number` | `loan_amount`, `down_payment_amount`, `funding_account_number` |
+| Outputs | `current_balance` (money) | `confirmation` | `new_account_number` | `loan_status` |
+| Risk | `safe` | `irreversible` | `irreversible` | `irreversible` |
+| Business outcome | account not in list — **derived by `cli probe`, `verified: true`** | insufficient funds (not probed) | below funding minimum (not probed) | none: a denial is a legitimate `loan_status`, not a failure to produce one |
+
+`account.request_loan` was discovered last, deliberately against a screen nothing here had
+touched. It failed the first time on a perception bug and again — silently — on risk
+classification: ParaBank labels the commit button "Apply Now", which the `COMMITS` verb list
+did not know, so a step that submits a loan application compiled as `safe`. Both are fixed;
+both are the argument for `--risk` being the dependable half of that heuristic.
+
+Risk is derived from the steps rather than declared: a capability is as risky as its
+riskiest step, so there is no second place for it to drift.
 
 Money is `{ currency: "USD", minorUnits: integer }`. Never float dollars.
 

@@ -338,13 +338,28 @@ export type Capability = z.infer<typeof Capability>;
 
 /**
  * 1 base + 200 overlays of ~8 lines, versus 200 forks of 200 lines. A bug fixed in
- * the base reaches every tenant.
+ * the base reaches every tenant, and what differs per tenant is legible on one screen.
  *
- * An overlay may change copy, paths, and locators. It may NEVER change risk, effect,
- * the signature, or an exception's class — otherwise a tenant config file becomes a
- * way to disable the safety model. Enforced in applyOverlay(), not by convention.
+ * An overlay may change copy, paths, and locators — the things that genuinely differ
+ * between two deployments of the same vendor product. It may not change risk, effect,
+ * the signature, or an exception's class, because a tenant configuration file that can
+ * downgrade a transfer to `safe` is a way to disable the safety model by editing
+ * config.
+ *
+ * That is guaranteed by construction rather than by a check: there is no field below
+ * in which to say it. A validator can be bypassed by the next person who adds a
+ * convenient escape hatch; an absent field cannot.
+ *
+ * Strict, so an overlay that tries anyway is rejected rather than silently stripped.
+ * Zod's default is to drop unknown keys, which is safe but unhelpful: a tenant who
+ * writes `risk: "safe"` in the hope of skipping an approval should be told their file
+ * is wrong, not left believing it worked.
+ *
+ * Multi-tenant execution is out of scope per §3.7 — the brief asks for the design, not
+ * the plumbing — so nothing merges these at runtime. What is built is the contract, and
+ * `tests/overlay.test.ts` holds it to the base artifact it claims to patch.
  */
-export const TenantOverlay = z.object({
+export const TenantOverlay = z.strictObject({
   apiVersion: z.literal("cua.overlay/v1"),
   kind: z.literal("TenantOverlay"),
   metadata: z.object({
@@ -466,14 +481,29 @@ export function assertArtifactSound(a: Capability): void {
       fail(`signature declares output '${name}' that nothing extracts`);
     }
   }
+
+  // Same rule for ${outputs.x}. The answer sentence is the only place these appear,
+  // and it is the one field a customer may end up reading, so a placeholder with
+  // nothing behind it must not survive review as a visible hole in a sentence.
+  const produced = new Set(Object.keys(a.signature.outputs));
+  for (const ref of referenced(a, "outputs")) {
+    if (!produced.has(ref)) {
+      fail(`references \${outputs.${ref}} but declares no such output`);
+    }
+  }
 }
 
 /** Names referenced as ${inputs.x} anywhere in the artifact. */
 export function referencedInputs(a: Capability): Set<string> {
+  return referenced(a, "inputs");
+}
+
+function referenced(a: Capability, bucket: "inputs" | "outputs"): Set<string> {
+  const re = new RegExp(`\\$\\{${bucket}\\.([A-Za-z_][A-Za-z0-9_]*)\\}`, "g");
   const found = new Set<string>();
   const scan = (v: unknown): void => {
     if (typeof v === "string") {
-      for (const m of v.matchAll(/\$\{inputs\.([A-Za-z_][A-Za-z0-9_]*)\}/g)) found.add(m[1]!);
+      for (const m of v.matchAll(re)) found.add(m[1]!);
     } else if (Array.isArray(v)) v.forEach(scan);
     else if (v && typeof v === "object") Object.values(v).forEach(scan);
   };

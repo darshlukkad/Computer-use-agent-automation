@@ -382,17 +382,33 @@ tenant variant. If any link in that chain is prose instead of a file, it isn't d
 
 ---
 
-## 11. Open decisions — NOT YET MADE
+## 11. Decisions — all made, each by doing rather than by choosing on paper
 
-§4 makes each of these our call, and each changes the build. To be resolved before scaffolding.
-
-- [ ] Target application (local hostile mock / public demo site / desktop app)
-- [ ] Goal complexity — simple lookup vs. the multi-screen flow in §10.3.1
-- [ ] Language & runtime
-- [ ] Computer-use mechanism (accessibility tree / DOM / screenshot+coordinates / hybrid)
-- [ ] LLM provider, model, and whether API access is already in hand
-- [ ] Architecture boundaries (single process vs. separate session service — interacts
-      directly with the §3.6 same-live-session requirement)
-- [ ] Artifact storage format and location
-- [ ] Which one or two stretch goals, if any
-- [ ] Time budget
+- [x] **Target application** — ParaBank (Parasoft's own demo bank, Apache-2.0), vendored
+      unmodified in `ParaBank-Mock-app/`. A real legacy JSP app we did not write, which is
+      the only way the locator ladder can be shown to be load-bearing rather than asserted.
+- [x] **Goal complexity** — three capabilities, ending with the multi-screen mutating flow:
+      balance lookup, funds transfer, open account. Two of the three commit money.
+- [x] **Language & runtime** — TypeScript on Node 22 with `tsx`. No build step.
+- [x] **Computer-use mechanism** — accessibility tree first, with a caption fallback for
+      controls the app leaves unnamed, and CSS as the last rung. No coordinates: ParaBank's
+      login fields defeat `getByRole(name:)` and `getByLabel` outright, so the caption rung
+      is not a nicety, it is the only thing that resolves them.
+- [x] **LLM provider** — one `llm_api_key`, provider detected by key prefix. Runs so far on
+      `openai:gpt-5.2`. Discovery only; an architecture test fails if a model SDK becomes
+      reachable from the replay engine.
+- [x] **Architecture boundaries** — **separate session process.** A browser owned by the
+      agent process cannot outlive it, and §3.6 requires the human to operate the session
+      the automation was using. `session serve` holds the browser; every other command
+      attaches over CDP and detaches without closing anything.
+      Playwright's own `launchServer` + `connect` was tried first and rejected: a second
+      process gets an isolated view (`browser.contexts()` is empty), which is exactly the
+      failure the clause is written to catch. `connectOverCDP` returns the running
+      browser's existing context and page. Both behaviours were verified before the design
+      depended on either.
+- [x] **Artifact storage** — one JSON file per capability in `capabilities/`, diffable in a
+      pull request. Guardrails in `policy.json`. Not a database; §7 says that is not rewarded.
+- [x] **Stretch goals** — outcome probe (`cli probe`, the only writer of `verified: true`)
+      and answer templates derived at discovery. Capability catalog remains uncut but unbuilt.
+- [ ] **Time budget** — steps 7 (proxy + tenant overlay) and 8 (README, REPORT, evidence)
+      remain.

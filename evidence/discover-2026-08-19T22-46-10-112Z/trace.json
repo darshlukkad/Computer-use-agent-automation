@@ -1,0 +1,3673 @@
+{
+  "status": "success",
+  "goal": "open a new SAVINGS account funded from account [funding_account_number:redacted] and report the new account number",
+  "params": {
+    "funding_account_number": "[funding_account_number:redacted]"
+  },
+  "model": "openai:gpt-5.2",
+  "modelCalls": 9,
+  "trace": [
+    {
+      "turn": 1,
+      "thought": "Enter the provided operator username to begin login.",
+      "action": {
+        "kind": "fill",
+        "target": {
+          "role": "textbox",
+          "nearbyText": "Username"
+        },
+        "value": "operator_username"
+      },
+      "before": {
+        "url": "http://localhost:8080/parabank/index.htm",
+        "title": "ParaBank | Welcome | Online Banking",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Customer Login"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "nearbyText": "Username"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "nearbyText": "Password"
+          },
+          {
+            "role": "button",
+            "name": "Log In"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Forgot login info?",
+            "nearbyText": "Password"
+          },
+          {
+            "role": "link",
+            "name": "Forgot login info?"
+          },
+          {
+            "role": "link",
+            "name": "Register"
+          },
+          {
+            "role": "link",
+            "name": "Withdraw Funds"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Check Balances"
+          },
+          {
+            "role": "link",
+            "name": "Make Deposits"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Account History"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Read More"
+          },
+          {
+            "role": "heading",
+            "name": "Latest News"
+          },
+          {
+            "role": "link",
+            "name": "ParaBank Is Now Re-Opened"
+          },
+          {
+            "role": "link",
+            "name": "New! Online Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "New! Online Account Transfers"
+          },
+          {
+            "role": "link",
+            "name": "Read More"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nCustomer Login\nUsername\nPassword\nForgot login info?\nRegister\nATM Services\nWithdraw Funds\nTransfer Funds\nCheck Balances\nMake Deposits\nOnline Services\nBill Pay\nAccount History\nTransfer Funds\nREAD MORE\nLATEST NEWS\n08/16/2026\nParaBank Is Now Re-Opened\nNew! Online Bill Pay\nNew! Online Account Transfers\nREAD MORE\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      },
+      "outcome": "ok",
+      "target": {
+        "ladder": {
+          "strategies": [
+            {
+              "kind": "label",
+              "text": "Username"
+            },
+            {
+              "kind": "nearby_text",
+              "text": "Username",
+              "direction": "below"
+            }
+          ],
+          "baselineRung": 2,
+          "rationale": "Recorded from a live run: its visible caption is \"Username\", which is what an operator reads because the application gives this control no name of its own."
+        },
+        "resolvedRung": 2
+      },
+      "credentialRef": "operator_username",
+      "after": {
+        "url": "http://localhost:8080/parabank/index.htm",
+        "title": "ParaBank | Welcome | Online Banking",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Customer Login"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "value": "john",
+            "nearbyText": "Username"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "nearbyText": "Password"
+          },
+          {
+            "role": "button",
+            "name": "Log In"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Forgot login info?",
+            "nearbyText": "Password"
+          },
+          {
+            "role": "link",
+            "name": "Forgot login info?"
+          },
+          {
+            "role": "link",
+            "name": "Register"
+          },
+          {
+            "role": "link",
+            "name": "Withdraw Funds"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Check Balances"
+          },
+          {
+            "role": "link",
+            "name": "Make Deposits"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Account History"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Read More"
+          },
+          {
+            "role": "heading",
+            "name": "Latest News"
+          },
+          {
+            "role": "link",
+            "name": "ParaBank Is Now Re-Opened"
+          },
+          {
+            "role": "link",
+            "name": "New! Online Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "New! Online Account Transfers"
+          },
+          {
+            "role": "link",
+            "name": "Read More"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nCustomer Login\nUsername\nPassword\nForgot login info?\nRegister\nATM Services\nWithdraw Funds\nTransfer Funds\nCheck Balances\nMake Deposits\nOnline Services\nBill Pay\nAccount History\nTransfer Funds\nREAD MORE\nLATEST NEWS\n08/16/2026\nParaBank Is Now Re-Opened\nNew! Online Bill Pay\nNew! Online Account Transfers\nREAD MORE\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      }
+    },
+    {
+      "turn": 2,
+      "thought": "Enter the provided operator password to complete the login credentials.",
+      "action": {
+        "kind": "fill",
+        "target": {
+          "role": "textbox",
+          "nearbyText": "Password"
+        },
+        "value": "operator_password"
+      },
+      "before": {
+        "url": "http://localhost:8080/parabank/index.htm",
+        "title": "ParaBank | Welcome | Online Banking",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Customer Login"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "value": "john",
+            "nearbyText": "Username"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "nearbyText": "Password"
+          },
+          {
+            "role": "button",
+            "name": "Log In"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Forgot login info?",
+            "nearbyText": "Password"
+          },
+          {
+            "role": "link",
+            "name": "Forgot login info?"
+          },
+          {
+            "role": "link",
+            "name": "Register"
+          },
+          {
+            "role": "link",
+            "name": "Withdraw Funds"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Check Balances"
+          },
+          {
+            "role": "link",
+            "name": "Make Deposits"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Account History"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Read More"
+          },
+          {
+            "role": "heading",
+            "name": "Latest News"
+          },
+          {
+            "role": "link",
+            "name": "ParaBank Is Now Re-Opened"
+          },
+          {
+            "role": "link",
+            "name": "New! Online Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "New! Online Account Transfers"
+          },
+          {
+            "role": "link",
+            "name": "Read More"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nCustomer Login\nUsername\nPassword\nForgot login info?\nRegister\nATM Services\nWithdraw Funds\nTransfer Funds\nCheck Balances\nMake Deposits\nOnline Services\nBill Pay\nAccount History\nTransfer Funds\nREAD MORE\nLATEST NEWS\n08/16/2026\nParaBank Is Now Re-Opened\nNew! Online Bill Pay\nNew! Online Account Transfers\nREAD MORE\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      },
+      "outcome": "ok",
+      "target": {
+        "ladder": {
+          "strategies": [
+            {
+              "kind": "label",
+              "text": "Password"
+            },
+            {
+              "kind": "nearby_text",
+              "text": "Password",
+              "direction": "below"
+            }
+          ],
+          "baselineRung": 2,
+          "rationale": "Recorded from a live run: its visible caption is \"Password\", which is what an operator reads because the application gives this control no name of its own."
+        },
+        "resolvedRung": 2
+      },
+      "credentialRef": "operator_password",
+      "after": {
+        "url": "http://localhost:8080/parabank/index.htm",
+        "title": "ParaBank | Welcome | Online Banking",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Customer Login"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "value": "john",
+            "nearbyText": "Username"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "nearbyText": "Password"
+          },
+          {
+            "role": "button",
+            "name": "Log In"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Forgot login info?",
+            "nearbyText": "Password"
+          },
+          {
+            "role": "link",
+            "name": "Forgot login info?"
+          },
+          {
+            "role": "link",
+            "name": "Register"
+          },
+          {
+            "role": "link",
+            "name": "Withdraw Funds"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Check Balances"
+          },
+          {
+            "role": "link",
+            "name": "Make Deposits"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Account History"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Read More"
+          },
+          {
+            "role": "heading",
+            "name": "Latest News"
+          },
+          {
+            "role": "link",
+            "name": "ParaBank Is Now Re-Opened"
+          },
+          {
+            "role": "link",
+            "name": "New! Online Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "New! Online Account Transfers"
+          },
+          {
+            "role": "link",
+            "name": "Read More"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nCustomer Login\nUsername\nPassword\nForgot login info?\nRegister\nATM Services\nWithdraw Funds\nTransfer Funds\nCheck Balances\nMake Deposits\nOnline Services\nBill Pay\nAccount History\nTransfer Funds\nREAD MORE\nLATEST NEWS\n08/16/2026\nParaBank Is Now Re-Opened\nNew! Online Bill Pay\nNew! Online Account Transfers\nREAD MORE\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      }
+    },
+    {
+      "turn": 3,
+      "thought": "Submit the login form to access account services needed to open a new savings account.",
+      "action": {
+        "kind": "click",
+        "target": {
+          "role": "button",
+          "name": "Log In"
+        }
+      },
+      "before": {
+        "url": "http://localhost:8080/parabank/index.htm",
+        "title": "ParaBank | Welcome | Online Banking",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Customer Login"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "value": "john",
+            "nearbyText": "Username"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "nearbyText": "Password"
+          },
+          {
+            "role": "button",
+            "name": "Log In"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Forgot login info?",
+            "nearbyText": "Password"
+          },
+          {
+            "role": "link",
+            "name": "Forgot login info?"
+          },
+          {
+            "role": "link",
+            "name": "Register"
+          },
+          {
+            "role": "link",
+            "name": "Withdraw Funds"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Check Balances"
+          },
+          {
+            "role": "link",
+            "name": "Make Deposits"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Account History"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Read More"
+          },
+          {
+            "role": "heading",
+            "name": "Latest News"
+          },
+          {
+            "role": "link",
+            "name": "ParaBank Is Now Re-Opened"
+          },
+          {
+            "role": "link",
+            "name": "New! Online Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "New! Online Account Transfers"
+          },
+          {
+            "role": "link",
+            "name": "Read More"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nCustomer Login\nUsername\nPassword\nForgot login info?\nRegister\nATM Services\nWithdraw Funds\nTransfer Funds\nCheck Balances\nMake Deposits\nOnline Services\nBill Pay\nAccount History\nTransfer Funds\nREAD MORE\nLATEST NEWS\n08/16/2026\nParaBank Is Now Re-Opened\nNew! Online Bill Pay\nNew! Online Account Transfers\nREAD MORE\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      },
+      "outcome": "ok",
+      "target": {
+        "ladder": {
+          "strategies": [
+            {
+              "kind": "role_name",
+              "role": "button",
+              "name": "Log In"
+            }
+          ],
+          "baselineRung": 1,
+          "rationale": "Recorded from a live run: the application names this control \"Log In\"."
+        },
+        "resolvedRung": 1
+      },
+      "after": {
+        "url": "http://localhost:8080/parabank/overview.htm",
+        "title": "ParaBank | Accounts Overview",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Welcome John Smith",
+            "nearbyText": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Account Services"
+          },
+          {
+            "role": "link",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Find Transactions"
+          },
+          {
+            "role": "link",
+            "name": "Update Contact Info"
+          },
+          {
+            "role": "link",
+            "name": "Request Loan"
+          },
+          {
+            "role": "link",
+            "name": "Log Out"
+          },
+          {
+            "role": "heading",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "12345",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "12345",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "-$2400.00",
+            "columnHeader": "Balance*",
+            "rowLabel": "12345"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$0.00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "12345"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "12456",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "12456",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$167.95",
+            "columnHeader": "Balance*",
+            "rowLabel": "12456"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$167.95",
+            "columnHeader": "Available Amount",
+            "rowLabel": "12456"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "12567",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "12567",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$124.84",
+            "columnHeader": "Balance*",
+            "rowLabel": "12567"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$124.84",
+            "columnHeader": "Available Amount",
+            "rowLabel": "12567"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "12678",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "12678",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "-$100.00",
+            "columnHeader": "Balance*",
+            "rowLabel": "12678"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$0.00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "12678"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "12789",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "12789",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$100.00",
+            "columnHeader": "Balance*",
+            "rowLabel": "12789"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$100.00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "12789"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "12900",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "12900",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$0.00",
+            "columnHeader": "Balance*",
+            "rowLabel": "12900"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$0.00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "12900"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "13011",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "13011",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$100.00",
+            "columnHeader": "Balance*",
+            "rowLabel": "13011"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$100.00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "13011"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[funding_account_number:redacted]",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "[funding_account_number:redacted]",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$1092.50",
+            "columnHeader": "Balance*",
+            "rowLabel": "[funding_account_number:redacted]"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$1092.50",
+            "columnHeader": "Available Amount",
+            "rowLabel": "[funding_account_number:redacted]"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "13233",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "13233",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$0.00",
+            "columnHeader": "Balance*",
+            "rowLabel": "13233"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$0.00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "13233"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "13344",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "13344",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$56.26",
+            "columnHeader": "Balance*",
+            "rowLabel": "13344"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$56.26",
+            "columnHeader": "Available Amount",
+            "rowLabel": "13344"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "13788",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "13788",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$100.00",
+            "columnHeader": "Balance*",
+            "rowLabel": "13788"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$100.00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "13788"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "13899",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "13899",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$100.00",
+            "columnHeader": "Balance*",
+            "rowLabel": "13899"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$100.00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "13899"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "14010",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "14010",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$100.00",
+            "columnHeader": "Balance*",
+            "rowLabel": "14010"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$100.00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "14010"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "14121",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "14121",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "14232",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "14343",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "14454",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "14565",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "14676",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "14787",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "14898",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "15009",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "54321",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nWelcome John Smith\nAccount Services\nOpen New Account\nAccounts Overview\nTransfer Funds\nBill Pay\nFind Transactions\nUpdate Contact Info\nRequest Loan\nLog Out\nAccounts Overview\nAccount\tBalance*\tAvailable Amount\n12345\t-$2400.00\t$0.00\n12456\t$167.95\t$167.95\n12567\t$124.84\t$124.84\n12678\t-$100.00\t$0.00\n12789\t$100.00\t$100.00\n12900\t$0.00\t$0.00\n13011\t$100.00\t$100.00\n[funding_account_number:redacted]\t$1092.50\t$1092.50\n13233\t$0.00\t$0.00\n13344\t$56.26\t$56.26\n13788\t$100.00\t$100.00\n13899\t$100.00\t$100.00\n14010\t$100.00\t$100.00\n14121\t$100.00\t$100.00\n14232\t$100.00\t$100.00\n14343\t$100.00\t$100.00\n14454\t$100.00\t$100.00\n14565\t$100.00\t$100.00\n14676\t$100.00\t$100.00\n14787\t$100.00\t$100.00\n14898\t$100.00\t$100.00\n15009\t$100.00\t$100.00\n54321\t$1351.12\t$1351.12\nTotal\t$1692.67\n*Balance includes deposits that may be subject to holds\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      }
+    },
+    {
+      "turn": 4,
+      "thought": "Navigate to the account opening workflow to create a new savings account.",
+      "action": {
+        "kind": "click",
+        "target": {
+          "role": "link",
+          "name": "Open New Account"
+        }
+      },
+      "before": {
+        "url": "http://localhost:8080/parabank/overview.htm",
+        "title": "ParaBank | Accounts Overview",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Welcome John Smith",
+            "nearbyText": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Account Services"
+          },
+          {
+            "role": "link",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Find Transactions"
+          },
+          {
+            "role": "link",
+            "name": "Update Contact Info"
+          },
+          {
+            "role": "link",
+            "name": "Request Loan"
+          },
+          {
+            "role": "link",
+            "name": "Log Out"
+          },
+          {
+            "role": "heading",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "12345",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "12345",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "-$2400.00",
+            "columnHeader": "Balance*",
+            "rowLabel": "12345"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$0.00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "12345"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "12456",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "12456",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$167.95",
+            "columnHeader": "Balance*",
+            "rowLabel": "12456"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$167.95",
+            "columnHeader": "Available Amount",
+            "rowLabel": "12456"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "12567",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "12567",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$124.84",
+            "columnHeader": "Balance*",
+            "rowLabel": "12567"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$124.84",
+            "columnHeader": "Available Amount",
+            "rowLabel": "12567"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "12678",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "12678",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "-$100.00",
+            "columnHeader": "Balance*",
+            "rowLabel": "12678"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$0.00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "12678"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "12789",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "12789",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$100.00",
+            "columnHeader": "Balance*",
+            "rowLabel": "12789"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$100.00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "12789"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "12900",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "12900",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$0.00",
+            "columnHeader": "Balance*",
+            "rowLabel": "12900"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$0.00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "12900"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "13011",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "13011",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$100.00",
+            "columnHeader": "Balance*",
+            "rowLabel": "13011"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$100.00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "13011"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[funding_account_number:redacted]",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "[funding_account_number:redacted]",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$1092.50",
+            "columnHeader": "Balance*",
+            "rowLabel": "[funding_account_number:redacted]"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$1092.50",
+            "columnHeader": "Available Amount",
+            "rowLabel": "[funding_account_number:redacted]"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "13233",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "13233",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$0.00",
+            "columnHeader": "Balance*",
+            "rowLabel": "13233"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$0.00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "13233"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "13344",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "13344",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$56.26",
+            "columnHeader": "Balance*",
+            "rowLabel": "13344"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$56.26",
+            "columnHeader": "Available Amount",
+            "rowLabel": "13344"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "13788",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "13788",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$100.00",
+            "columnHeader": "Balance*",
+            "rowLabel": "13788"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$100.00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "13788"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "13899",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "13899",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$100.00",
+            "columnHeader": "Balance*",
+            "rowLabel": "13899"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$100.00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "13899"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "14010",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "14010",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$100.00",
+            "columnHeader": "Balance*",
+            "rowLabel": "14010"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$100.00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "14010"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "14121",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "14121",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "14232",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "14343",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "14454",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "14565",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "14676",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "14787",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "14898",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "15009",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "54321",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nWelcome John Smith\nAccount Services\nOpen New Account\nAccounts Overview\nTransfer Funds\nBill Pay\nFind Transactions\nUpdate Contact Info\nRequest Loan\nLog Out\nAccounts Overview\nAccount\tBalance*\tAvailable Amount\n12345\t-$2400.00\t$0.00\n12456\t$167.95\t$167.95\n12567\t$124.84\t$124.84\n12678\t-$100.00\t$0.00\n12789\t$100.00\t$100.00\n12900\t$0.00\t$0.00\n13011\t$100.00\t$100.00\n[funding_account_number:redacted]\t$1092.50\t$1092.50\n13233\t$0.00\t$0.00\n13344\t$56.26\t$56.26\n13788\t$100.00\t$100.00\n13899\t$100.00\t$100.00\n14010\t$100.00\t$100.00\n14121\t$100.00\t$100.00\n14232\t$100.00\t$100.00\n14343\t$100.00\t$100.00\n14454\t$100.00\t$100.00\n14565\t$100.00\t$100.00\n14676\t$100.00\t$100.00\n14787\t$100.00\t$100.00\n14898\t$100.00\t$100.00\n15009\t$100.00\t$100.00\n54321\t$1351.12\t$1351.12\nTotal\t$1692.67\n*Balance includes deposits that may be subject to holds\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      },
+      "outcome": "ok",
+      "target": {
+        "ladder": {
+          "strategies": [
+            {
+              "kind": "role_name",
+              "role": "link",
+              "name": "Open New Account"
+            }
+          ],
+          "baselineRung": 1,
+          "rationale": "Recorded from a live run: the application names this control \"Open New Account\"."
+        },
+        "resolvedRung": 1
+      },
+      "after": {
+        "url": "http://localhost:8080/parabank/openaccount.htm",
+        "title": "ParaBank | Open Account",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Welcome John Smith",
+            "nearbyText": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Account Services"
+          },
+          {
+            "role": "link",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Find Transactions"
+          },
+          {
+            "role": "link",
+            "name": "Update Contact Info"
+          },
+          {
+            "role": "link",
+            "name": "Request Loan"
+          },
+          {
+            "role": "link",
+            "name": "Log Out"
+          },
+          {
+            "role": "heading",
+            "name": "Open New Account"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "What type of Account would you like to open?",
+            "nearbyText": "Open New Account"
+          },
+          {
+            "role": "combobox",
+            "name": "",
+            "value": "CHECKING",
+            "options": [
+              "CHECKING",
+              "SAVINGS"
+            ],
+            "nearbyText": "What type of Account would you like to open?"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "A minimum of $100.00 must be deposited into this account at time of opening. Please choose an existing account to transfer funds into the new account.",
+            "nearbyText": "What type of Account would you like to open?"
+          },
+          {
+            "role": "combobox",
+            "name": "",
+            "value": "12345",
+            "options": [
+              "12345",
+              "12456",
+              "12567",
+              "12678",
+              "12789",
+              "12900",
+              "13011",
+              "[funding_account_number:redacted]",
+              "13233",
+              "13344",
+              "13788",
+              "13899",
+              "… 11 more"
+            ],
+            "nearbyText": "A minimum of $100.00 must be deposited into this account at time of opening. Please choose an existing account to transfer funds into the new account."
+          },
+          {
+            "role": "button",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nWelcome John Smith\nAccount Services\nOpen New Account\nAccounts Overview\nTransfer Funds\nBill Pay\nFind Transactions\nUpdate Contact Info\nRequest Loan\nLog Out\nOpen New Account\nWhat type of Account would you like to open?\nCHECKING\nSAVINGS\nA minimum of $100.00 must be deposited into this account at time of opening. Please choose an existing account to transfer funds into the new account.\n12345\n12456\n12567\n12678\n12789\n12900\n13011\n[funding_account_number:redacted]\n13233\n13344\n13788\n13899\n14010\n14121\n14232\n14343\n14454\n14565\n14676\n14787\n14898\n15009\n54321\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      }
+    },
+    {
+      "turn": 5,
+      "thought": "Select SAVINGS as the type of account to open per the goal.",
+      "action": {
+        "kind": "select",
+        "target": {
+          "role": "combobox",
+          "nearbyText": "What type of Account would you like to open?"
+        },
+        "value": "SAVINGS"
+      },
+      "before": {
+        "url": "http://localhost:8080/parabank/openaccount.htm",
+        "title": "ParaBank | Open Account",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Welcome John Smith",
+            "nearbyText": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Account Services"
+          },
+          {
+            "role": "link",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Find Transactions"
+          },
+          {
+            "role": "link",
+            "name": "Update Contact Info"
+          },
+          {
+            "role": "link",
+            "name": "Request Loan"
+          },
+          {
+            "role": "link",
+            "name": "Log Out"
+          },
+          {
+            "role": "heading",
+            "name": "Open New Account"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "What type of Account would you like to open?",
+            "nearbyText": "Open New Account"
+          },
+          {
+            "role": "combobox",
+            "name": "",
+            "value": "CHECKING",
+            "options": [
+              "CHECKING",
+              "SAVINGS"
+            ],
+            "nearbyText": "What type of Account would you like to open?"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "A minimum of $100.00 must be deposited into this account at time of opening. Please choose an existing account to transfer funds into the new account.",
+            "nearbyText": "What type of Account would you like to open?"
+          },
+          {
+            "role": "combobox",
+            "name": "",
+            "value": "12345",
+            "options": [
+              "12345",
+              "12456",
+              "12567",
+              "12678",
+              "12789",
+              "12900",
+              "13011",
+              "[funding_account_number:redacted]",
+              "13233",
+              "13344",
+              "13788",
+              "13899",
+              "… 11 more"
+            ],
+            "nearbyText": "A minimum of $100.00 must be deposited into this account at time of opening. Please choose an existing account to transfer funds into the new account."
+          },
+          {
+            "role": "button",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nWelcome John Smith\nAccount Services\nOpen New Account\nAccounts Overview\nTransfer Funds\nBill Pay\nFind Transactions\nUpdate Contact Info\nRequest Loan\nLog Out\nOpen New Account\nWhat type of Account would you like to open?\nCHECKING\nSAVINGS\nA minimum of $100.00 must be deposited into this account at time of opening. Please choose an existing account to transfer funds into the new account.\n12345\n12456\n12567\n12678\n12789\n12900\n13011\n[funding_account_number:redacted]\n13233\n13344\n13788\n13899\n14010\n14121\n14232\n14343\n14454\n14565\n14676\n14787\n14898\n15009\n54321\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      },
+      "outcome": "ok",
+      "target": {
+        "ladder": {
+          "strategies": [
+            {
+              "kind": "label",
+              "text": "What type of Account would you like to open?"
+            },
+            {
+              "kind": "nearby_text",
+              "text": "What type of Account would you like to open?",
+              "direction": "below"
+            }
+          ],
+          "baselineRung": 2,
+          "rationale": "Recorded from a live run: its visible caption is \"What type of Account would you like to open?\", which is what an operator reads because the application gives this control no name of its own."
+        },
+        "resolvedRung": 2
+      },
+      "after": {
+        "url": "http://localhost:8080/parabank/openaccount.htm",
+        "title": "ParaBank | Open Account",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Welcome John Smith",
+            "nearbyText": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Account Services"
+          },
+          {
+            "role": "link",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Find Transactions"
+          },
+          {
+            "role": "link",
+            "name": "Update Contact Info"
+          },
+          {
+            "role": "link",
+            "name": "Request Loan"
+          },
+          {
+            "role": "link",
+            "name": "Log Out"
+          },
+          {
+            "role": "heading",
+            "name": "Open New Account"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "What type of Account would you like to open?",
+            "nearbyText": "Open New Account"
+          },
+          {
+            "role": "combobox",
+            "name": "",
+            "value": "SAVINGS",
+            "options": [
+              "CHECKING",
+              "SAVINGS"
+            ],
+            "nearbyText": "What type of Account would you like to open?"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "A minimum of $100.00 must be deposited into this account at time of opening. Please choose an existing account to transfer funds into the new account.",
+            "nearbyText": "What type of Account would you like to open?"
+          },
+          {
+            "role": "combobox",
+            "name": "",
+            "value": "12345",
+            "options": [
+              "12345",
+              "12456",
+              "12567",
+              "12678",
+              "12789",
+              "12900",
+              "13011",
+              "[funding_account_number:redacted]",
+              "13233",
+              "13344",
+              "13788",
+              "13899",
+              "… 11 more"
+            ],
+            "nearbyText": "A minimum of $100.00 must be deposited into this account at time of opening. Please choose an existing account to transfer funds into the new account."
+          },
+          {
+            "role": "button",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nWelcome John Smith\nAccount Services\nOpen New Account\nAccounts Overview\nTransfer Funds\nBill Pay\nFind Transactions\nUpdate Contact Info\nRequest Loan\nLog Out\nOpen New Account\nWhat type of Account would you like to open?\nCHECKING\nSAVINGS\nA minimum of $100.00 must be deposited into this account at time of opening. Please choose an existing account to transfer funds into the new account.\n12345\n12456\n12567\n12678\n12789\n12900\n13011\n[funding_account_number:redacted]\n13233\n13344\n13788\n13899\n14010\n14121\n14232\n14343\n14454\n14565\n14676\n14787\n14898\n15009\n54321\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      }
+    },
+    {
+      "turn": 6,
+      "thought": "Select the funding account [funding_account_number:redacted] to fund the new savings account as required.",
+      "action": {
+        "kind": "select",
+        "target": {
+          "role": "combobox",
+          "nearbyText": "A minimum of $100.00 must be deposited into this account at time of opening. Please choose an existing account to transfer funds into the new account."
+        },
+        "value": "[funding_account_number:redacted]"
+      },
+      "before": {
+        "url": "http://localhost:8080/parabank/openaccount.htm",
+        "title": "ParaBank | Open Account",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Welcome John Smith",
+            "nearbyText": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Account Services"
+          },
+          {
+            "role": "link",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Find Transactions"
+          },
+          {
+            "role": "link",
+            "name": "Update Contact Info"
+          },
+          {
+            "role": "link",
+            "name": "Request Loan"
+          },
+          {
+            "role": "link",
+            "name": "Log Out"
+          },
+          {
+            "role": "heading",
+            "name": "Open New Account"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "What type of Account would you like to open?",
+            "nearbyText": "Open New Account"
+          },
+          {
+            "role": "combobox",
+            "name": "",
+            "value": "SAVINGS",
+            "options": [
+              "CHECKING",
+              "SAVINGS"
+            ],
+            "nearbyText": "What type of Account would you like to open?"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "A minimum of $100.00 must be deposited into this account at time of opening. Please choose an existing account to transfer funds into the new account.",
+            "nearbyText": "What type of Account would you like to open?"
+          },
+          {
+            "role": "combobox",
+            "name": "",
+            "value": "12345",
+            "options": [
+              "12345",
+              "12456",
+              "12567",
+              "12678",
+              "12789",
+              "12900",
+              "13011",
+              "[funding_account_number:redacted]",
+              "13233",
+              "13344",
+              "13788",
+              "13899",
+              "… 11 more"
+            ],
+            "nearbyText": "A minimum of $100.00 must be deposited into this account at time of opening. Please choose an existing account to transfer funds into the new account."
+          },
+          {
+            "role": "button",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nWelcome John Smith\nAccount Services\nOpen New Account\nAccounts Overview\nTransfer Funds\nBill Pay\nFind Transactions\nUpdate Contact Info\nRequest Loan\nLog Out\nOpen New Account\nWhat type of Account would you like to open?\nCHECKING\nSAVINGS\nA minimum of $100.00 must be deposited into this account at time of opening. Please choose an existing account to transfer funds into the new account.\n12345\n12456\n12567\n12678\n12789\n12900\n13011\n[funding_account_number:redacted]\n13233\n13344\n13788\n13899\n14010\n14121\n14232\n14343\n14454\n14565\n14676\n14787\n14898\n15009\n54321\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      },
+      "outcome": "ok",
+      "target": {
+        "ladder": {
+          "strategies": [
+            {
+              "kind": "label",
+              "text": "A minimum of $100.00 must be deposited into this account at time of opening. Please choose an existing account to transfer funds into the new account."
+            },
+            {
+              "kind": "nearby_text",
+              "text": "A minimum of $100.00 must be deposited into this account at time of opening. Please choose an existing account to transfer funds into the new account.",
+              "direction": "below"
+            }
+          ],
+          "baselineRung": 2,
+          "rationale": "Recorded from a live run: its visible caption is \"A minimum of $100.00 must be deposited into this account at time of opening. Please choose an existing account to transfer funds into the new account.\", which is what an operator reads because the application gives this control no name of its own."
+        },
+        "resolvedRung": 2
+      },
+      "after": {
+        "url": "http://localhost:8080/parabank/openaccount.htm",
+        "title": "ParaBank | Open Account",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Welcome John Smith",
+            "nearbyText": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Account Services"
+          },
+          {
+            "role": "link",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Find Transactions"
+          },
+          {
+            "role": "link",
+            "name": "Update Contact Info"
+          },
+          {
+            "role": "link",
+            "name": "Request Loan"
+          },
+          {
+            "role": "link",
+            "name": "Log Out"
+          },
+          {
+            "role": "heading",
+            "name": "Open New Account"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "What type of Account would you like to open?",
+            "nearbyText": "Open New Account"
+          },
+          {
+            "role": "combobox",
+            "name": "",
+            "value": "SAVINGS",
+            "options": [
+              "CHECKING",
+              "SAVINGS"
+            ],
+            "nearbyText": "What type of Account would you like to open?"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "A minimum of $100.00 must be deposited into this account at time of opening. Please choose an existing account to transfer funds into the new account.",
+            "nearbyText": "What type of Account would you like to open?"
+          },
+          {
+            "role": "combobox",
+            "name": "",
+            "value": "[funding_account_number:redacted]",
+            "options": [
+              "12345",
+              "12456",
+              "12567",
+              "12678",
+              "12789",
+              "12900",
+              "13011",
+              "[funding_account_number:redacted]",
+              "13233",
+              "13344",
+              "13788",
+              "13899",
+              "… 11 more"
+            ],
+            "nearbyText": "A minimum of $100.00 must be deposited into this account at time of opening. Please choose an existing account to transfer funds into the new account."
+          },
+          {
+            "role": "button",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nWelcome John Smith\nAccount Services\nOpen New Account\nAccounts Overview\nTransfer Funds\nBill Pay\nFind Transactions\nUpdate Contact Info\nRequest Loan\nLog Out\nOpen New Account\nWhat type of Account would you like to open?\nCHECKING\nSAVINGS\nA minimum of $100.00 must be deposited into this account at time of opening. Please choose an existing account to transfer funds into the new account.\n12345\n12456\n12567\n12678\n12789\n12900\n13011\n[funding_account_number:redacted]\n13233\n13344\n13788\n13899\n14010\n14121\n14232\n14343\n14454\n14565\n14676\n14787\n14898\n15009\n54321\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      }
+    },
+    {
+      "turn": 7,
+      "thought": "Submit the open account request now that SAVINGS and funding account [funding_account_number:redacted] are selected.",
+      "action": {
+        "kind": "click",
+        "target": {
+          "role": "button",
+          "name": "Open New Account"
+        }
+      },
+      "before": {
+        "url": "http://localhost:8080/parabank/openaccount.htm",
+        "title": "ParaBank | Open Account",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Welcome John Smith",
+            "nearbyText": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Account Services"
+          },
+          {
+            "role": "link",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Find Transactions"
+          },
+          {
+            "role": "link",
+            "name": "Update Contact Info"
+          },
+          {
+            "role": "link",
+            "name": "Request Loan"
+          },
+          {
+            "role": "link",
+            "name": "Log Out"
+          },
+          {
+            "role": "heading",
+            "name": "Open New Account"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "What type of Account would you like to open?",
+            "nearbyText": "Open New Account"
+          },
+          {
+            "role": "combobox",
+            "name": "",
+            "value": "SAVINGS",
+            "options": [
+              "CHECKING",
+              "SAVINGS"
+            ],
+            "nearbyText": "What type of Account would you like to open?"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "A minimum of $100.00 must be deposited into this account at time of opening. Please choose an existing account to transfer funds into the new account.",
+            "nearbyText": "What type of Account would you like to open?"
+          },
+          {
+            "role": "combobox",
+            "name": "",
+            "value": "[funding_account_number:redacted]",
+            "options": [
+              "12345",
+              "12456",
+              "12567",
+              "12678",
+              "12789",
+              "12900",
+              "13011",
+              "[funding_account_number:redacted]",
+              "13233",
+              "13344",
+              "13788",
+              "13899",
+              "… 11 more"
+            ],
+            "nearbyText": "A minimum of $100.00 must be deposited into this account at time of opening. Please choose an existing account to transfer funds into the new account."
+          },
+          {
+            "role": "button",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nWelcome John Smith\nAccount Services\nOpen New Account\nAccounts Overview\nTransfer Funds\nBill Pay\nFind Transactions\nUpdate Contact Info\nRequest Loan\nLog Out\nOpen New Account\nWhat type of Account would you like to open?\nCHECKING\nSAVINGS\nA minimum of $100.00 must be deposited into this account at time of opening. Please choose an existing account to transfer funds into the new account.\n12345\n12456\n12567\n12678\n12789\n12900\n13011\n[funding_account_number:redacted]\n13233\n13344\n13788\n13899\n14010\n14121\n14232\n14343\n14454\n14565\n14676\n14787\n14898\n15009\n54321\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      },
+      "outcome": "ok",
+      "target": {
+        "ladder": {
+          "strategies": [
+            {
+              "kind": "role_name",
+              "role": "button",
+              "name": "Open New Account"
+            }
+          ],
+          "baselineRung": 1,
+          "rationale": "Recorded from a live run: the application names this control \"Open New Account\"."
+        },
+        "resolvedRung": 1
+      },
+      "after": {
+        "url": "http://localhost:8080/parabank/openaccount.htm",
+        "title": "ParaBank | Open Account",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Welcome John Smith",
+            "nearbyText": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Account Services"
+          },
+          {
+            "role": "link",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Find Transactions"
+          },
+          {
+            "role": "link",
+            "name": "Update Contact Info"
+          },
+          {
+            "role": "link",
+            "name": "Request Loan"
+          },
+          {
+            "role": "link",
+            "name": "Log Out"
+          },
+          {
+            "role": "heading",
+            "name": "Account Opened!"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Congratulations, your account is now open.",
+            "nearbyText": "Account Opened!"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Your new account number: 15120",
+            "nearbyText": "Congratulations, your account is now open."
+          },
+          {
+            "role": "link",
+            "name": "15120",
+            "nearbyText": "Your new account number:"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nWelcome John Smith\nAccount Services\nOpen New Account\nAccounts Overview\nTransfer Funds\nBill Pay\nFind Transactions\nUpdate Contact Info\nRequest Loan\nLog Out\nAccount Opened!\nCongratulations, your account is now open.\nYour new account number: 15120\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      }
+    },
+    {
+      "turn": 8,
+      "thought": "Record the newly created savings account number shown on the confirmation screen.",
+      "action": {
+        "kind": "read",
+        "target": {
+          "role": "link",
+          "name": "15120",
+          "nearbyText": "Your new account number:"
+        },
+        "outputName": "new_account_number"
+      },
+      "before": {
+        "url": "http://localhost:8080/parabank/openaccount.htm",
+        "title": "ParaBank | Open Account",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Welcome John Smith",
+            "nearbyText": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Account Services"
+          },
+          {
+            "role": "link",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Find Transactions"
+          },
+          {
+            "role": "link",
+            "name": "Update Contact Info"
+          },
+          {
+            "role": "link",
+            "name": "Request Loan"
+          },
+          {
+            "role": "link",
+            "name": "Log Out"
+          },
+          {
+            "role": "heading",
+            "name": "Account Opened!"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Congratulations, your account is now open.",
+            "nearbyText": "Account Opened!"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Your new account number: 15120",
+            "nearbyText": "Congratulations, your account is now open."
+          },
+          {
+            "role": "link",
+            "name": "15120",
+            "nearbyText": "Your new account number:"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nWelcome John Smith\nAccount Services\nOpen New Account\nAccounts Overview\nTransfer Funds\nBill Pay\nFind Transactions\nUpdate Contact Info\nRequest Loan\nLog Out\nAccount Opened!\nCongratulations, your account is now open.\nYour new account number: 15120\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      },
+      "outcome": "ok",
+      "target": {
+        "ladder": {
+          "strategies": [
+            {
+              "kind": "label",
+              "text": "Your new account number:"
+            },
+            {
+              "kind": "nearby_text",
+              "text": "Your new account number:",
+              "direction": "below"
+            }
+          ],
+          "baselineRung": 2,
+          "rationale": "Recorded from a live run: the application names this control \"15120\"; its visible caption is \"Your new account number:\", which is what an operator reads."
+        },
+        "resolvedRung": 2
+      },
+      "extracted": {
+        "name": "new_account_number",
+        "value": "15120"
+      },
+      "after": {
+        "url": "http://localhost:8080/parabank/openaccount.htm",
+        "title": "ParaBank | Open Account",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Welcome John Smith",
+            "nearbyText": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Account Services"
+          },
+          {
+            "role": "link",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Find Transactions"
+          },
+          {
+            "role": "link",
+            "name": "Update Contact Info"
+          },
+          {
+            "role": "link",
+            "name": "Request Loan"
+          },
+          {
+            "role": "link",
+            "name": "Log Out"
+          },
+          {
+            "role": "heading",
+            "name": "Account Opened!"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Congratulations, your account is now open.",
+            "nearbyText": "Account Opened!"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Your new account number: 15120",
+            "nearbyText": "Congratulations, your account is now open."
+          },
+          {
+            "role": "link",
+            "name": "15120",
+            "nearbyText": "Your new account number:"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nWelcome John Smith\nAccount Services\nOpen New Account\nAccounts Overview\nTransfer Funds\nBill Pay\nFind Transactions\nUpdate Contact Info\nRequest Loan\nLog Out\nAccount Opened!\nCongratulations, your account is now open.\nYour new account number: 15120\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      }
+    },
+    {
+      "turn": 9,
+      "thought": "Goal achieved: new savings account opened and new account number recorded.",
+      "action": {
+        "kind": "done",
+        "summary": "Opened a new SAVINGS account funded from account [funding_account_number:redacted] and recorded the new account number as 15120."
+      },
+      "before": {
+        "url": "http://localhost:8080/parabank/openaccount.htm",
+        "title": "ParaBank | Open Account",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Welcome John Smith",
+            "nearbyText": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Account Services"
+          },
+          {
+            "role": "link",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Find Transactions"
+          },
+          {
+            "role": "link",
+            "name": "Update Contact Info"
+          },
+          {
+            "role": "link",
+            "name": "Request Loan"
+          },
+          {
+            "role": "link",
+            "name": "Log Out"
+          },
+          {
+            "role": "heading",
+            "name": "Account Opened!"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Congratulations, your account is now open.",
+            "nearbyText": "Account Opened!"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Your new account number: 15120",
+            "nearbyText": "Congratulations, your account is now open."
+          },
+          {
+            "role": "link",
+            "name": "15120",
+            "nearbyText": "Your new account number:"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nWelcome John Smith\nAccount Services\nOpen New Account\nAccounts Overview\nTransfer Funds\nBill Pay\nFind Transactions\nUpdate Contact Info\nRequest Loan\nLog Out\nAccount Opened!\nCongratulations, your account is now open.\nYour new account number: 15120\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      },
+      "outcome": "ok"
+    }
+  ],
+  "outputs": {
+    "new_account_number": "15120"
+  },
+  "stopReason": "Opened a new SAVINGS account funded from account [funding_account_number:redacted] and recorded the new account number as 15120.",
+  "evidenceDir": "evidence/discover-2026-08-19T22-46-10-112Z"
+}

@@ -1,0 +1,430 @@
+{
+  "apiVersion": "cua.capability/v1",
+  "kind": "Capability",
+  "metadata": {
+    "id": "account.request_loan",
+    "version": "1.0.0",
+    "status": "approved",
+    "title": "request a loan of {{loan_amount}} with a down payment of {{down_payment_amount}} from account {{funding_account_number}} and report the loan status",
+    "description": "Discovered from a live run against localhost:8080.",
+    "digest": "0e12e69aef78cc2e5683a85644461dc7b204f4603444ad5b50e078be06b4d66e",
+    "approval": {
+      "digest": "0e12e69aef78cc2e5683a85644461dc7b204f4603444ad5b50e078be06b4d66e",
+      "approverId": "darsh@personal.com",
+      "approvedAt": "2026-08-25T20:16:50.144Z"
+    }
+  },
+  "provenance": {
+    "discoveryRunId": "evidence/discover-2026-08-25T20-14-31-363Z",
+    "model": "openai:gpt-5.2",
+    "createdAt": "2026-08-25T20:15:03.197Z",
+    "runnerVersion": "0.1.0",
+    "liveLlm": true
+  },
+  "compatibility": {
+    "vendor": "parasoft",
+    "product": "parabank",
+    "versionRange": ">=5.0.0 <6.0.0"
+  },
+  "entry": {
+    "originAllowlist": [
+      "http://localhost:8080"
+    ],
+    "path": "/parabank/index.htm"
+  },
+  "signature": {
+    "inputs": {
+      "loan_amount": {
+        "type": "string",
+        "required": true,
+        "pii": "identifier",
+        "description": "Supplied per invocation; typed into the control labelled \"Loan Amount:\" during discovery."
+      },
+      "down_payment_amount": {
+        "type": "string",
+        "required": true,
+        "pii": "identifier",
+        "description": "Supplied per invocation; typed into the control labelled \"Down Payment:\" during discovery."
+      },
+      "funding_account_number": {
+        "type": "string",
+        "required": true,
+        "pii": "identifier",
+        "description": "Supplied per invocation; typed into the control labelled \"From account #:\" during discovery."
+      }
+    },
+    "outputs": {
+      "loan_status": {
+        "type": "string",
+        "required": true,
+        "pii": "none",
+        "description": "Read from the control labelled \"Status:\" during discovery."
+      }
+    }
+  },
+  "preconditions": [
+    {
+      "kind": "text_present",
+      "text": "Customer Login"
+    }
+  ],
+  "steps": [
+    {
+      "id": "s1_open",
+      "action": "navigate",
+      "effect": "observation",
+      "risk": "safe",
+      "postcondition": {
+        "kind": "text_present",
+        "text": "Customer Login"
+      },
+      "timeoutMs": 15000,
+      "maxAttempts": 1,
+      "onError": "fail"
+    },
+    {
+      "id": "s2_fill_username",
+      "action": "fill",
+      "target": {
+        "strategies": [
+          {
+            "kind": "label",
+            "text": "Username"
+          },
+          {
+            "kind": "nearby_text",
+            "text": "Username",
+            "direction": "below"
+          }
+        ],
+        "baselineRung": 2,
+        "rationale": "Recorded from a live run: its visible caption is \"Username\", which is what an operator reads because the application gives this control no name of its own."
+      },
+      "value": {
+        "kind": "secret",
+        "ref": "operator_username"
+      },
+      "effect": "idempotent_write",
+      "risk": "safe",
+      "postcondition": {
+        "kind": "value_non_empty",
+        "target": {
+          "strategies": [
+            {
+              "kind": "label",
+              "text": "Username"
+            },
+            {
+              "kind": "nearby_text",
+              "text": "Username",
+              "direction": "below"
+            }
+          ],
+          "baselineRung": 2,
+          "rationale": "The control written by this step; asserts the write landed."
+        }
+      },
+      "timeoutMs": 15000,
+      "maxAttempts": 1,
+      "onError": "fail"
+    },
+    {
+      "id": "s3_fill_password",
+      "action": "fill",
+      "target": {
+        "strategies": [
+          {
+            "kind": "label",
+            "text": "Password"
+          },
+          {
+            "kind": "nearby_text",
+            "text": "Password",
+            "direction": "below"
+          }
+        ],
+        "baselineRung": 2,
+        "rationale": "Recorded from a live run: its visible caption is \"Password\", which is what an operator reads because the application gives this control no name of its own."
+      },
+      "value": {
+        "kind": "secret",
+        "ref": "operator_password"
+      },
+      "effect": "idempotent_write",
+      "risk": "safe",
+      "postcondition": {
+        "kind": "value_non_empty",
+        "target": {
+          "strategies": [
+            {
+              "kind": "label",
+              "text": "Password"
+            },
+            {
+              "kind": "nearby_text",
+              "text": "Password",
+              "direction": "below"
+            }
+          ],
+          "baselineRung": 2,
+          "rationale": "The control written by this step; asserts the write landed."
+        }
+      },
+      "timeoutMs": 15000,
+      "maxAttempts": 1,
+      "onError": "fail"
+    },
+    {
+      "id": "s4_click_log_in",
+      "action": "click",
+      "target": {
+        "strategies": [
+          {
+            "kind": "role_name",
+            "role": "button",
+            "name": "Log In"
+          }
+        ],
+        "baselineRung": 1,
+        "rationale": "Recorded from a live run: the application names this control \"Log In\"."
+      },
+      "effect": "idempotent_write",
+      "risk": "safe",
+      "postcondition": {
+        "kind": "text_present",
+        "text": "Account Services"
+      },
+      "timeoutMs": 20000,
+      "maxAttempts": 1,
+      "onError": "fail"
+    },
+    {
+      "id": "s5_click_request_loan",
+      "action": "click",
+      "target": {
+        "strategies": [
+          {
+            "kind": "role_name",
+            "role": "link",
+            "name": "Request Loan"
+          }
+        ],
+        "baselineRung": 1,
+        "rationale": "Recorded from a live run: the application names this control \"Request Loan\"."
+      },
+      "effect": "reversible_mutation",
+      "risk": "reversible",
+      "postcondition": {
+        "kind": "text_present",
+        "text": "Apply for a Loan"
+      },
+      "timeoutMs": 20000,
+      "maxAttempts": 1,
+      "onError": "fail"
+    },
+    {
+      "id": "s6_fill_loan_amount",
+      "action": "fill",
+      "target": {
+        "strategies": [
+          {
+            "kind": "label",
+            "text": "Loan Amount:"
+          },
+          {
+            "kind": "nearby_text",
+            "text": "Loan Amount:",
+            "direction": "below"
+          }
+        ],
+        "baselineRung": 2,
+        "rationale": "Recorded from a live run: its visible caption is \"Loan Amount:\", which is what an operator reads because the application gives this control no name of its own."
+      },
+      "value": {
+        "kind": "param",
+        "name": "loan_amount"
+      },
+      "effect": "idempotent_write",
+      "risk": "safe",
+      "postcondition": {
+        "kind": "value_equals",
+        "target": {
+          "strategies": [
+            {
+              "kind": "label",
+              "text": "Loan Amount:"
+            },
+            {
+              "kind": "nearby_text",
+              "text": "Loan Amount:",
+              "direction": "below"
+            }
+          ],
+          "baselineRung": 2,
+          "rationale": "The control written by this step; asserts the write landed."
+        },
+        "value": "${inputs.loan_amount}"
+      },
+      "timeoutMs": 15000,
+      "maxAttempts": 1,
+      "onError": "fail"
+    },
+    {
+      "id": "s7_fill_down_payment",
+      "action": "fill",
+      "target": {
+        "strategies": [
+          {
+            "kind": "label",
+            "text": "Down Payment:"
+          },
+          {
+            "kind": "nearby_text",
+            "text": "Down Payment:",
+            "direction": "below"
+          }
+        ],
+        "baselineRung": 2,
+        "rationale": "Recorded from a live run: its visible caption is \"Down Payment:\", which is what an operator reads because the application gives this control no name of its own."
+      },
+      "value": {
+        "kind": "param",
+        "name": "down_payment_amount"
+      },
+      "effect": "idempotent_write",
+      "risk": "safe",
+      "postcondition": {
+        "kind": "value_equals",
+        "target": {
+          "strategies": [
+            {
+              "kind": "label",
+              "text": "Down Payment:"
+            },
+            {
+              "kind": "nearby_text",
+              "text": "Down Payment:",
+              "direction": "below"
+            }
+          ],
+          "baselineRung": 2,
+          "rationale": "The control written by this step; asserts the write landed."
+        },
+        "value": "${inputs.down_payment_amount}"
+      },
+      "timeoutMs": 15000,
+      "maxAttempts": 1,
+      "onError": "fail"
+    },
+    {
+      "id": "s8_select_from_account",
+      "action": "select",
+      "target": {
+        "strategies": [
+          {
+            "kind": "label",
+            "text": "From account #:"
+          },
+          {
+            "kind": "nearby_text",
+            "text": "From account #:",
+            "direction": "below"
+          }
+        ],
+        "baselineRung": 2,
+        "rationale": "Recorded from a live run: its visible caption is \"From account #:\", which is what an operator reads because the application gives this control no name of its own."
+      },
+      "value": {
+        "kind": "param",
+        "name": "funding_account_number"
+      },
+      "effect": "idempotent_write",
+      "risk": "safe",
+      "postcondition": {
+        "kind": "value_equals",
+        "target": {
+          "strategies": [
+            {
+              "kind": "label",
+              "text": "From account #:"
+            },
+            {
+              "kind": "nearby_text",
+              "text": "From account #:",
+              "direction": "below"
+            }
+          ],
+          "baselineRung": 2,
+          "rationale": "The control written by this step; asserts the write landed."
+        },
+        "value": "${inputs.funding_account_number}"
+      },
+      "timeoutMs": 15000,
+      "maxAttempts": 1,
+      "onError": "fail"
+    },
+    {
+      "id": "s9_click_apply_now",
+      "action": "click",
+      "target": {
+        "strategies": [
+          {
+            "kind": "role_name",
+            "role": "button",
+            "name": "Apply Now"
+          }
+        ],
+        "baselineRung": 1,
+        "rationale": "Recorded from a live run: the application names this control \"Apply Now\"."
+      },
+      "effect": "irreversible_mutation",
+      "risk": "irreversible",
+      "postcondition": {
+        "kind": "text_present",
+        "text": "Loan Request Processed"
+      },
+      "timeoutMs": 20000,
+      "maxAttempts": 1,
+      "onError": "escalate"
+    },
+    {
+      "id": "s10_read_status",
+      "action": "read",
+      "target": {
+        "strategies": [
+          {
+            "kind": "label",
+            "text": "Status:"
+          },
+          {
+            "kind": "nearby_text",
+            "text": "Status:",
+            "direction": "below"
+          }
+        ],
+        "baselineRung": 2,
+        "rationale": "Recorded from a live run: its visible caption is \"Status:\", which is what an operator reads because the application gives this control no name of its own."
+      },
+      "effect": "observation",
+      "risk": "safe",
+      "timeoutMs": 15000,
+      "maxAttempts": 3,
+      "extractTo": "loan_status",
+      "onError": "fail"
+    }
+  ],
+  "exceptions": [],
+  "success": {
+    "checkpoint": {
+      "kind": "text_present",
+      "text": "Account Services"
+    },
+    "extract": [
+      {
+        "output": "loan_status",
+        "from": "s10_read_status"
+      }
+    ],
+    "answer": "The loan request for ${inputs.loan_amount} with a down payment of ${inputs.down_payment_amount} from account ${inputs.funding_account_number} shows status: ${outputs.loan_status}."
+  }
+}

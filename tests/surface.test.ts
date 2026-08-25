@@ -204,3 +204,36 @@ test("table_cell finds nothing for an account that is not listed", async () => {
   await assert.rejects(() => driver.readText(targetOf("s6_read_balance")), TargetMissing);
   driver.setInputs({ accountId: "13122" });
 });
+
+test("a caption in one table cell resolves to the field in the next", async () => {
+  // Regression, found by running a discovery against a screen we had never tried. The
+  // loan form separates caption from field across cells, with a currency symbol between:
+  //
+  //   <td align="right"><b>Loan Amount:</b> $</td>
+  //   <td><input id="amount"/></td>
+  //
+  // In document order that second <td> precedes the <input> it contains, and TD counted
+  // as a control so a caption walk stopped there. Every attempt to type went to the cell.
+  // The failure was quiet in the worst way: match count was exactly 1, so nothing looked
+  // wrong — the model was the thing that noticed, reporting that the field "resolves to a
+  // <td> element" and giving up after three tries.
+  //
+  // A container holding an editable control no longer stands in for it. A cell holding
+  // only text still does, which is what the read tests above depend on.
+  await driver.act({ action: "navigate", url: `${BASE}/requestloan.htm` });
+
+  const loanAmount: Target = {
+    strategies: [{ kind: "nearby_text", text: "Loan Amount:", direction: "below" }],
+    baselineRung: 1,
+    rationale: "Caption and field sit in adjacent cells, which is the case this covers.",
+  };
+  const res = await driver.resolve(loanAmount);
+  assert.equal(res.matchCount, 1);
+
+  // fill() throws on anything that is not fillable, so this is the real assertion —
+  // counting matches proved nothing here, which is exactly how the bug survived.
+  await driver.act({ action: "fill", target: loanAmount, value: "1000" });
+  assert.equal(await driver.readValue(loanAmount), "1000");
+
+  // Nothing is submitted, so no loan is requested by running the test suite.
+});

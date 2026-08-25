@@ -14,11 +14,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { parseCapability, type Capability } from "../src/artifact/schema.ts";
+import { loadCapability } from "../src/artifact/store.ts";
 import { approve } from "../src/artifact/digest.ts";
 import { WebDriver } from "../src/surface/web/driver.ts";
 import { replay } from "../src/replay/engine.ts";
 import {
-  parseMoney, renderAnswer, resolveSecret, validateInputs, ValueError,
+  formatMoney, parseMoney, renderAnswer, resolveSecret, validateInputs, ValueError,
 } from "../src/replay/values.ts";
 
 const FIXTURE = "tests/fixtures/lookup_balance.handwritten.json";
@@ -221,9 +222,18 @@ test("success carries the answer in plain language, from the artifact's template
   // Phrasing belongs to the capability, not to the caller: an agent relaying this
   // to a member should not have to invent wording, and the wording is reviewable
   // in the same diff as the flow.
-  assert.equal(result.answer, "The current balance for account 13122 is $1,100.00.");
-  // The sentence is not a substitute for the data.
-  assert.deepEqual(result.outputs.balance, { currency: "USD", minorUnits: 110000 });
+  //
+  // The balance is asserted by shape rather than by value on purpose. Account 13122 is
+  // the source account for the transfer and open-account capabilities, so a run of
+  // either changes it — and a test that pins the number would fail for a reason that
+  // has nothing to do with what it is testing.
+  assert.match(result.answer ?? "", /^The current balance for account 13122 is -?\$[\d,]+\.\d{2}\.$/);
+
+  // The sentence is not a substitute for the data, and the two must agree.
+  const balance = result.outputs.balance as { currency: string; minorUnits: number };
+  assert.equal(balance.currency, "USD");
+  assert.ok((result.answer ?? "").includes(formatMoney(balance)),
+    `the sentence should quote the typed output: ${result.answer} vs ${formatMoney(balance)}`);
 });
 
 test("a business outcome states itself too", async () => {
@@ -246,6 +256,23 @@ test("the answer reaches the caller but the identifier never reaches disk", asyn
   const persisted = readFileSync(join(result.evidenceDir, "result.json"), "utf8");
   assert.doesNotMatch(persisted, /13122/);
   assert.match(persisted, /\[accountId:redacted\]/);
+});
+
+test("a sentence ending in a value that already ends it is not double-punctuated", () => {
+  // ParaBank's transfer confirmation ends in a period, and a template ending in that
+  // placeholder adds another: "…to account #12567..". Seen on a live replay.
+  assert.equal(
+    renderAnswer("The confirmation shown is ${outputs.confirmation}.", {
+      inputs: {},
+      outputs: { confirmation: "$3.25 has been transferred from account #13122 to account #12567." },
+    }),
+    "The confirmation shown is $3.25 has been transferred from account #13122 to account #12567.",
+  );
+  // A sentence that legitimately ends in one mark keeps it.
+  assert.equal(
+    renderAnswer("Balance is ${outputs.b}.", { inputs: {}, outputs: { b: "$10.00" } }),
+    "Balance is $10.00.",
+  );
 });
 
 test("a template referencing something unknown stays visible", () => {
@@ -327,4 +354,56 @@ test("a business outcome is structurally not an error", async () => {
   // mistake this for a crash because the fields for one are not present.
   assert.equal("safeToRetry" in result, false);
   assert.equal("expected" in result, false);
+});
+
+// --- the same claim, on an artifact nobody wrote ---------------------------
+
+/**
+ * Everything above runs against the hand-written fixture, which was given its
+ * exception rules by hand. That is fine for testing the engine, and worthless as
+ * evidence that the *system* can produce them — a rule someone typed proves only that
+ * the schema has a field for it.
+ *
+ * These run against `capabilities/account.lookup_balance.json`, which was produced by
+ * a live discovery run and whose one exception rule was derived by `cli probe` from
+ * two real observations: a run that found the account and a run that did not. Nothing
+ * about it was written by a person, and `verified: true` means precisely that.
+ */
+const discovered = (): Capability => loadCapability("account.lookup_balance").artifact;
+
+test("a discovered artifact carries a verified exception rule", () => {
+  const rule = discovered().exceptions.find((e) => e.code === "ACCOUNT_NOT_FOUND");
+  assert.ok(rule, "the probe should have recorded this rule");
+  assert.equal(rule.verified, true, "only a run that reached the branch may set this");
+  assert.equal(rule.class, "business_outcome");
+
+  // The rule is app-agnostic in shape: a screen anchor plus a declared input that
+  // stopped being visible. No account number is baked into it.
+  assert.equal(JSON.stringify(rule.when).includes("99999"), false);
+  assert.match(JSON.stringify(rule.when), /\$\{inputs\./);
+});
+
+test("the discovered capability classifies a missing account as a business outcome", async () => {
+  const result = await replay({
+    artifact: approve(discovered(), "test@local"),
+    inputs: { account_number: "99999" }, driver, evidenceRoot,
+  });
+  assert.equal(result.status, "business_outcome", JSON.stringify(result, null, 2));
+  assert.equal(result.status === "business_outcome" && result.code, "ACCOUNT_NOT_FOUND");
+});
+
+test("the same capability still succeeds for an account that does exist", async () => {
+  // The half a derived rule most easily gets wrong: matching the happy path too.
+  const result = await replay({
+    artifact: approve(discovered(), "test@local"),
+    inputs: { account_number: "13122" }, driver, evidenceRoot,
+  });
+  assert.equal(result.status, "success", JSON.stringify(result, null, 2));
+  if (result.status !== "success") return;
+
+  // By shape, not by value: this account is the source for the mutating capabilities.
+  const balance = result.outputs.current_balance as { currency: string; minorUnits: number };
+  assert.equal(balance.currency, "USD");
+  assert.equal(Number.isInteger(balance.minorUnits), true);
+  assert.match(result.answer ?? "", /^The current balance for account 13122 is/);
 });

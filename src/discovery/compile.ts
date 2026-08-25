@@ -22,6 +22,7 @@ import type {
 } from "../artifact/schema.ts";
 import { parseCapability } from "../artifact/schema.ts";
 import type { AxNode, Observation } from "../surface/driver.ts";
+import { maskToken } from "../evidence/recorder.ts";
 import type { DiscoveryRun, TraceEntry } from "./loop.ts";
 
 const RUNNER_VERSION = "0.1.0";
@@ -33,13 +34,22 @@ const RUNNER_VERSION = "0.1.0";
  * `idempotent_write` / `safe`, which would have made a money-moving capability
  * auto-approvable and nominally retry-safe.
  *
+ * `apply` and `request` were added after a loan-request run showed the miss rather than
+ * the over-trigger: ParaBank labels that button "Apply Now", which matched nothing, so a
+ * step that submitted a loan application — approved on the spot, creating an account —
+ * compiled as `safe` and nominally retry-safe. Nothing here caught it; reading the
+ * artifact afterwards did.
+ *
  * ponytail: a name-pattern heuristic, and it will both miss and over-trigger. It fails
  * in the safe direction — over-classifying only costs an approval — and the caller can
- * override with an explicit risk. The upgrade path is a per-product control registry,
- * or asking the application which of its actions are transactional; neither is
- * something to invent from a name pattern, and neither belongs in a take-home.
+ * override with an explicit risk. The loan run is the argument for not trusting it: a
+ * verb this list does not know is a commitment silently graded as safe, and the list
+ * cannot be completed by thinking harder about it. The upgrade path is a per-product
+ * control registry, or asking the application which of its actions are transactional;
+ * until then, `--risk` on anything that moves money or creates a record is the
+ * dependable half of this, and every artifact compiles to draft regardless.
  */
-const COMMITS = /\b(transfer|submit|confirm|pay|send|authoris?e|authorize|withdraw|deposit|delete|remove|close|cancel|approve|post|wire|open (a |an )?(new )?account)\b/i;
+const COMMITS = /\b(transfer|submit|confirm|pay|send|authoris?e|authorize|withdraw|deposit|delete|remove|close|cancel|approve|post|wire|apply|request|open (a |an )?(new )?account)\b/i;
 
 /** Whether the control is the kind of thing that submits, as opposed to navigates. */
 function isButtonLike(t: Target): boolean {
@@ -322,6 +332,12 @@ export function compile(opts: CompileOptions): Capability {
  * Add an exception rule from a run that actually reached the branch.
  *
  * `verified: true` is only ever set here, because only here has the state been seen.
+ * Everywhere else in this file refuses to write exception rules at all: a happy-path
+ * run has no evidence of what going wrong looks like, and a plausible-looking guess
+ * about it is worse than an empty list, because an empty list is honest.
+ *
+ * Both observations come from real replays — one that succeeded and one that reached
+ * the branch — so the rule is a difference that was measured rather than imagined.
  */
 export function probeOutcome(
   artifact: Capability,
@@ -329,33 +345,64 @@ export function probeOutcome(
   rule: { id: string; code: string; class: ExceptionRule["class"]; answer?: string },
   distinguishFrom: Observation,
 ): Capability {
-  const marker = distinguishingText(observed, distinguishFrom);
-  if (!marker) {
+  /**
+   * Where we are: a line the branch state has and the success state does not — an
+   * error banner, a "no results" notice. Failing that, the heading of the screen the
+   * branch ended on, which at least anchors the rule to a screen.
+   */
+  const anchor = distinguishingText(observed, distinguishFrom) ?? headings(observed.nodes)[0];
+
+  /**
+   * What is missing: an input whose value was visible on the successful run and is not
+   * visible here.
+   *
+   * This is the case a text diff cannot see, and it is the common one. ParaBank shows
+   * the same Accounts Overview whether or not the account exists — the only difference
+   * is a table row that is not there. Nothing textual distinguishes the two screens,
+   * so a rule built from page text alone would either match everything or nothing.
+   *
+   * The masked observation is what makes this answerable. A recorded observation has
+   * the run's own parameter values replaced by `[name:redacted]`, so the token's
+   * presence is exactly the question "did the screen show the record we asked about?"
+   * — without either state ever holding a real account number.
+   */
+  const absent = Object.keys(artifact.signature.inputs).find(
+    (name) =>
+      distinguishFrom.text.includes(maskToken(name)) && !observed.text.includes(maskToken(name)),
+  );
+
+  if (!anchor && !absent) {
     throw new CompileFailed(
-      `the ${rule.code} state is textually indistinguishable from the success state; ` +
-      `it needs a different detector than page text`,
+      `the ${rule.code} state is indistinguishable from the success state: no text is ` +
+      `unique to it, and no declared input became invisible. It needs a detector this ` +
+      `probe cannot derive from two observations`,
     );
   }
 
-  const when: Condition = {
-    kind: "all",
-    items: [
-      { kind: "text_present", text: marker },
-      ...(rule.class === "business_outcome"
-        // A negative answer must not be mistaken for the positive one.
-        ? [{ kind: "text_absent", text: "${inputs.accountId}" } as Condition]
-        : []),
-    ],
-  };
+  const items: Condition[] = [];
+  if (anchor) items.push({ kind: "text_present", text: anchor });
+  if (absent) {
+    items.push({ kind: "text_absent", text: `\${inputs.${absent}}` });
+  } else {
+    // No parameter went missing, so guard against the success state matching this rule
+    // by requiring the success state's own marker to be absent.
+    const successMarker = distinguishingText(distinguishFrom, observed);
+    if (successMarker) items.push({ kind: "text_absent", text: successMarker });
+  }
+  const when: Condition = items.length === 1 ? items[0]! : { kind: "all", items };
 
+  const { digest: _d, approval: _a, ...metadata } = artifact.metadata;
   return parseCapability({
     ...artifact,
     exceptions: [
       ...artifact.exceptions,
-      { id: rule.id, when, class: rule.class, code: rule.code, verified: true, ...(rule.answer ? { answer: rule.answer } : {}) },
+      {
+        id: rule.id, when, class: rule.class, code: rule.code, verified: true,
+        ...(rule.answer ? { answer: rule.answer } : {}),
+      },
     ],
-    // Content changed, so any prior approval is void.
-    metadata: { ...artifact.metadata, status: "draft", digest: undefined, approval: undefined },
+    // Content changed, so any prior approval is void — and the digest with it.
+    metadata: { ...metadata, status: "draft" },
   });
 }
 

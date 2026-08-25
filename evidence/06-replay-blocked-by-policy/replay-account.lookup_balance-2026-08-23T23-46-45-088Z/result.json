@@ -1,0 +1,10 @@
+{
+  "capabilityId": "account.lookup_balance",
+  "capabilityVersion": "1.0.0",
+  "tenant": null,
+  "evidenceDir": "evidence/06-replay-blocked-by-policy/replay-account.lookup_balance-2026-08-23T23-46-45-088Z",
+  "status": "blocked",
+  "policyRule": "policy-origin-allowlist",
+  "reason": "entry http://localhost:8080/parabank/index.htm is outside the deployment's allowlist (https://servicing.summitcu.test)",
+  "durationMs": 4
+}

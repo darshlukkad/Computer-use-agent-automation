@@ -7,17 +7,17 @@
     "status": "approved",
     "title": "transfer {{amount}} from account {{from_account}} to account {{to_account}} and report the confirmation shown",
     "description": "Discovered from a live run against localhost:8080.",
-    "digest": "dcec199467eac61929438bfc3574e791dfacb6eb7b0111d27f849763d8af6d15",
+    "digest": "a2b26399f3e0f7a379f2b0f853bf064a1134b631e9a6038afd1865f44ee3fd83",
     "approval": {
-      "digest": "dcec199467eac61929438bfc3574e791dfacb6eb7b0111d27f849763d8af6d15",
-      "approverId": "darsh@band24.com",
-      "approvedAt": "2026-08-18T21:54:34.274Z"
+      "digest": "a2b26399f3e0f7a379f2b0f853bf064a1134b631e9a6038afd1865f44ee3fd83",
+      "approverId": "darsh@personal.com",
+      "approvedAt": "2026-08-19T22:47:14.346Z"
     }
   },
   "provenance": {
-    "discoveryRunId": "evidence/discover-2026-08-18T21-52-44-350Z",
+    "discoveryRunId": "evidence/discover-2026-08-19T22-45-23-218Z",
     "model": "openai:gpt-5.2",
-    "createdAt": "2026-08-18T21:53:15.231Z",
+    "createdAt": "2026-08-19T22:45:56.803Z",
     "runnerVersion": "0.1.0",
     "liveLlm": true
   },
@@ -441,6 +441,7 @@
         "output": "confirmation",
         "from": "s10_read_transfer_complete"
       }
-    ]
+    ],
+    "answer": "The transfer confirmation shown is ${outputs.confirmation}."
   }
 }

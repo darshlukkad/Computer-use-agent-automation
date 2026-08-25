@@ -18,9 +18,13 @@ import { classifyDrift } from "../src/result/types.ts";
  * Hand-written on purpose, and kept out of capabilities/ so it is never mistaken for a
  * shipped one. It exists because the schema had to be proved able to express a real
  * legacy flow before a replay engine was built on it — writing it by hand is what
- * surfaced two schema gaps early. It is also the only artifact carrying exception
- * rules, so the business-outcome tests run against it until a discovered artifact
- * earns its own through an outcome probe.
+ * surfaced two schema gaps early.
+ *
+ * It used to be the only artifact carrying exception rules; the outcome probe ended
+ * that, and `tests/replay.test.ts` now proves the business-outcome path on a
+ * discovered artifact instead. What it is still good for is the lint tests below,
+ * which need an artifact that can be deliberately broken in specific ways — and
+ * hand-crafting the invalid input is the point of a lint test.
  */
 const FIXTURE = "tests/fixtures/lookup_balance.handwritten.json";
 /**

@@ -48,10 +48,17 @@ docker run --rm -u "$(id -u):$(id -g)" \
   maven:3.9-eclipse-temurin-21 \
   mvn -q -Duser.home=/var/maven clean package -DskipTests
 
-# 2. build and run the image
+# 2. give the WAR the name the Dockerfile expects
+#    Maven names it from the POM (parabank-5.0.0-SNAPSHOT.war); the Dockerfile copies
+#    target/parabank.war. We rename rather than edit the Dockerfile, which is upstream's.
+cp target/parabank-*.war target/parabank.war
+
+# 3. build and run the image
 docker build -t parabank-local .
 docker run -d --name parabank -p 8080:8080 parabank-local
 ```
+
+`../run.sh` does all of this, and skips whatever is already done.
 
 Then open http://localhost:8080/parabank/index.htm — the app initializes its own embedded
 HSQLDB on first request. Demo credentials are `john` / `demo`.
@@ -60,7 +67,18 @@ HSQLDB on first request. Demo credentials are `john` / `demo`.
 
 ## Resetting state between runs
 
-Our capability performs a real fund transfer, which mutates the database. ParaBank exposes a
-**Clean / Initialize Database** function at `/parabank/admin.htm`; the replay harness calls it
-between evidence runs so that "same inputs, same outputs" holds across repeated replays.
-A full reset is `docker rm -f parabank && docker run …` (~40s).
+Two of our three capabilities mutate the database: one transfers money, one opens an account.
+So repeated replays of `account.lookup_balance` report different balances, and each
+`open_new_account` run returns a different account number.
+
+Nothing in this repository resets the database, and that is deliberate rather than pending.
+"Same inputs, same outputs" is not a property a real banking flow has — the second transfer of
+the same amount is a different transfer — so asserting it would mean testing against an app
+that behaves unlike the ones this is for. What is deterministic is the **decision path**: the
+same steps, resolved at the same ladder rungs, with no model consulted. That is what the
+traces record and what the tests assert; the tests that touch a mutating account check the
+shape of the value and its agreement with the answer sentence, never a fixed figure.
+
+If you do want a clean slate, ParaBank has a **Clean / Initialize Database** button at
+`/parabank/admin.htm`, or `docker rm -f parabank && docker run …` (~40s). Neither is required
+to reproduce anything here.
