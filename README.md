@@ -17,9 +17,26 @@ fields have no `id`, no `<label>` and no accessible name, so `getByRole(name:)` 
 `getByLabel` both resolve to **zero** elements. The ladder is not decoration; it is the only
 thing that finds them.
 
+```bash
+./run.sh          # from a clean clone to a running console
+./review.sh       # four minutes: every claim below, checked against a live run
+```
+
 - **[REPORT.md](REPORT.md)** — the design, and what was cut.
 - **[evidence/](evidence/README.md)** — real runs: discovery, replay, a business outcome, a
   policy refusal, and a human taking the browser mid-run.
+
+### Assessing this
+
+`./review.sh` is a guided tour for someone reviewing the work. Each section states a claim,
+runs the command that would falsify it, and shows the output — the boundary between replay and
+the model, the locator rung that actually resolved, a missing record coming back as a business
+outcome rather than an error, a policy refusal, approval surviving a formatter but not an edit,
+and an account number reaching the caller while never reaching disk. It exits non-zero if any
+claim fails, so it doubles as a smoke test. `--pause` stops between sections.
+
+It needs no model API key. Only `npm start` → *Discover* does, and that is the one thing that
+should.
 
 ---
 
@@ -108,7 +125,43 @@ bugs in the git history were found only because the target was an app we could n
 
 ## The demo path
 
-Two commands: teach it something, then run the thing it learned.
+```bash
+npm start          # ./run.sh opens this for you
+```
+
+An operator console. Pick **Discover a new capability**, describe a task in a sentence, and
+watch a model work out how to do it; then pick **Replay a capability** and run what it learned
+with an input it never saw.
+
+```
+  What do you want to do?
+    1) Replay a capability          pick one, fill in its inputs, watch it run
+    2) Discover a new capability    describe a task; the model works out how
+    3) Approve a capability         sign a draft so it can run unattended
+    4) Probe an unhappy path        teach a capability what going wrong looks like
+    5) Walk through a handoff       pause a run, take the browser, hand it back
+    6) Show what exists             capabilities, their risk, and any live sessions
+```
+
+It reads each artifact and asks for its inputs **by name**, with the type and the description
+the compiler recorded — the field is `account_number`, not `accountId`, and guessing is the
+usual way to hit `INPUT_VALIDATION`. Every run is headed, slowed to 700ms per action, and
+recorded to `evidence/video/`.
+
+It prints every command before running it, so it teaches the CLI rather than hiding it:
+
+```
+  $ npm run cua -- replay --id account.lookup_balance --input '{"account_number":"13122"}' --headed --slow 700 --video …
+
+SUCCESS in 4324ms
+  The current balance for account 13122 is $882.14.
+```
+
+Option 5 is worth a look — it walks the human handoff, which is otherwise four commands across
+two terminals, and it spawns a real session process so the browser genuinely outlives the run.
+
+<details>
+<summary>The same three steps as raw commands</summary>
 
 ```bash
 # 1. Learn. One model call per turn, and a live browser you can watch.
@@ -128,22 +181,10 @@ npm run replay -- --id demo.lookup_balance --input '{"account_number":"12567"}'
 ```
 
 Step 1 prints the contract it read off your sentence before it starts — the parameter, the
-output and its type, and the answer template — so you can disagree with it. Step 3 prints
-which ladder rung answered for every step and whether that differed from the rung recorded at
-learning time.
-
-Try step 3 before step 2 to see the approval gate refuse it.
-
-### The interactive way
-
-```bash
-npm start
-```
-
-Lists the capabilities, asks for each declared input by name with the description the compiler
-recorded, and runs headed, slowed and recorded. It prints every command before running it, so
-it teaches the CLI rather than hiding it. It also walks the human-handoff cycle, which is
-otherwise four commands across two terminals.
+output and its type, and the answer template — so you can disagree with it. Step 3 prints which
+ladder rung answered for every step, and whether that differed from the rung recorded at
+learning time. Try step 3 before step 2 to see the approval gate refuse it.
+</details>
 
 ## The rest of the surface
 
