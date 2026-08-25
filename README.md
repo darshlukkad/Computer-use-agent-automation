@@ -108,7 +108,7 @@ four places instead of never existing.
 ## Running without live services
 
 **Replay needs no model key.** That is the point of the architecture, not a convenience: the
-three capabilities in `/capabilities` were learned once and cost nothing per invocation. With
+four capabilities in `/capabilities` were learned once and cost nothing per invocation. With
 `.env` holding only the two ParaBank credentials, everything below works except `discover`.
 
 **With no ParaBank either**, 34 of the 100 tests still run — the schema and its lint,
@@ -196,10 +196,15 @@ learning time. Try step 3 before step 2 to see the approval gate refuse it.
 npm test                    # 100 tests; needs ParaBank for the integration ones
 npm run cua -- list         # capabilities, their derived risk, and whether policy gates them
 
-# The three shipped capabilities
+# The four shipped capabilities
 npm run replay -- --id account.lookup_balance    --input '{"account_number":"13122"}'
 npm run replay -- --id account.transfer_funds    --input '{"amount":"5.00","from_account":"13122","to_account":"12567"}'
 npm run replay -- --id account.open_new_account  --input '{"funding_account_number":"13122"}'
+npm run replay -- --id account.request_loan      --input '{"loan_amount":"500","down_payment_amount":"100","funding_account_number":"12567"}'
+
+# The same capability, a negative answer: a big loan against a token down payment is
+# Denied. Still a SUCCESS — the flow produced exactly what was asked for.
+npm run replay -- --id account.request_loan --input '{"loan_amount":"90000","down_payment_amount":"1","funding_account_number":"12567"}'
 
 # A business outcome: the automation worked, the answer is negative
 npm run replay -- --id account.lookup_balance --input '{"account_number":"99999"}'
@@ -252,6 +257,6 @@ the trace says `skipped` rather than omitting them. A handback that changed noth
 | `src/discovery/` | the learning path: the model proposes, this disposes |
 | `src/policy/`, `src/evidence/` | guardrails as data; masking at the write |
 | `src/session/`, `src/hitl/` | custody of a live browser, and transferring it |
-| `capabilities/` | three artifacts, all produced by live runs |
+| `capabilities/` | four artifacts, all produced by live runs |
 | `overlays/` | one example tenant overlay — design only, per §3.7 |
 | `context/` | the working notes this was built from, including the competitive teardown |

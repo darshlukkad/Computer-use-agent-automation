@@ -1,0 +1,4126 @@
+{
+  "status": "success",
+  "goal": "request a loan of [loan_amount:redacted] with a down payment of [down_payment_amount:redacted] from account [funding_account_number:redacted] and report the loan status",
+  "params": {
+    "loan_amount": "[loan_amount:redacted]",
+    "down_payment_amount": "[down_payment_amount:redacted]",
+    "funding_account_number": "[funding_account_number:redacted]"
+  },
+  "model": "openai:gpt-5.2",
+  "modelCalls": 10,
+  "trace": [
+    {
+      "turn": 1,
+      "thought": "Enter provided operator username to log in.",
+      "action": {
+        "kind": "fill",
+        "target": {
+          "role": "textbox",
+          "nearbyText": "Username"
+        },
+        "value": "operator_username"
+      },
+      "before": {
+        "url": "http://localhost:8080/parabank/index.htm",
+        "title": "ParaBank | Welcome | Online Banking",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Customer Login"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "nearbyText": "Username"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "nearbyText": "Password"
+          },
+          {
+            "role": "button",
+            "name": "Log In"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Forgot login info?",
+            "nearbyText": "Password"
+          },
+          {
+            "role": "link",
+            "name": "Forgot login info?"
+          },
+          {
+            "role": "link",
+            "name": "Register"
+          },
+          {
+            "role": "link",
+            "name": "Withdraw Funds"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Check Balances"
+          },
+          {
+            "role": "link",
+            "name": "Make Deposits"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Account History"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Read More"
+          },
+          {
+            "role": "heading",
+            "name": "Latest News"
+          },
+          {
+            "role": "link",
+            "name": "ParaBank Is Now Re-Opened"
+          },
+          {
+            "role": "link",
+            "name": "New! Online Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "New! Online Account Transfers"
+          },
+          {
+            "role": "link",
+            "name": "Read More"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nCustomer Login\nUsername\nPassword\nForgot login info?\nRegister\nATM Services\nWithdraw Funds\nTransfer Funds\nCheck Balances\nMake Deposits\nOnline Services\nBill Pay\nAccount History\nTransfer Funds\nREAD MORE\nLATEST NEWS\n08/25/2026\nParaBank Is Now Re-Opened\nNew! Online Bill Pay\nNew! Online Account Transfers\nREAD MORE\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      },
+      "outcome": "ok",
+      "target": {
+        "ladder": {
+          "strategies": [
+            {
+              "kind": "label",
+              "text": "Username"
+            },
+            {
+              "kind": "nearby_text",
+              "text": "Username",
+              "direction": "below"
+            }
+          ],
+          "baselineRung": 2,
+          "rationale": "Recorded from a live run: its visible caption is \"Username\", which is what an operator reads because the application gives this control no name of its own."
+        },
+        "resolvedRung": 2
+      },
+      "credentialRef": "operator_username",
+      "after": {
+        "url": "http://localhost:8080/parabank/index.htm",
+        "title": "ParaBank | Welcome | Online Banking",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Customer Login"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "value": "john",
+            "nearbyText": "Username"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "nearbyText": "Password"
+          },
+          {
+            "role": "button",
+            "name": "Log In"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Forgot login info?",
+            "nearbyText": "Password"
+          },
+          {
+            "role": "link",
+            "name": "Forgot login info?"
+          },
+          {
+            "role": "link",
+            "name": "Register"
+          },
+          {
+            "role": "link",
+            "name": "Withdraw Funds"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Check Balances"
+          },
+          {
+            "role": "link",
+            "name": "Make Deposits"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Account History"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Read More"
+          },
+          {
+            "role": "heading",
+            "name": "Latest News"
+          },
+          {
+            "role": "link",
+            "name": "ParaBank Is Now Re-Opened"
+          },
+          {
+            "role": "link",
+            "name": "New! Online Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "New! Online Account Transfers"
+          },
+          {
+            "role": "link",
+            "name": "Read More"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nCustomer Login\nUsername\nPassword\nForgot login info?\nRegister\nATM Services\nWithdraw Funds\nTransfer Funds\nCheck Balances\nMake Deposits\nOnline Services\nBill Pay\nAccount History\nTransfer Funds\nREAD MORE\nLATEST NEWS\n08/25/2026\nParaBank Is Now Re-Opened\nNew! Online Bill Pay\nNew! Online Account Transfers\nREAD MORE\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      }
+    },
+    {
+      "turn": 2,
+      "thought": "Enter the provided operator password to proceed with login.",
+      "action": {
+        "kind": "fill",
+        "target": {
+          "role": "textbox",
+          "nearbyText": "Password"
+        },
+        "value": "operator_password"
+      },
+      "before": {
+        "url": "http://localhost:8080/parabank/index.htm",
+        "title": "ParaBank | Welcome | Online Banking",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Customer Login"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "value": "john",
+            "nearbyText": "Username"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "nearbyText": "Password"
+          },
+          {
+            "role": "button",
+            "name": "Log In"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Forgot login info?",
+            "nearbyText": "Password"
+          },
+          {
+            "role": "link",
+            "name": "Forgot login info?"
+          },
+          {
+            "role": "link",
+            "name": "Register"
+          },
+          {
+            "role": "link",
+            "name": "Withdraw Funds"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Check Balances"
+          },
+          {
+            "role": "link",
+            "name": "Make Deposits"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Account History"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Read More"
+          },
+          {
+            "role": "heading",
+            "name": "Latest News"
+          },
+          {
+            "role": "link",
+            "name": "ParaBank Is Now Re-Opened"
+          },
+          {
+            "role": "link",
+            "name": "New! Online Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "New! Online Account Transfers"
+          },
+          {
+            "role": "link",
+            "name": "Read More"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nCustomer Login\nUsername\nPassword\nForgot login info?\nRegister\nATM Services\nWithdraw Funds\nTransfer Funds\nCheck Balances\nMake Deposits\nOnline Services\nBill Pay\nAccount History\nTransfer Funds\nREAD MORE\nLATEST NEWS\n08/25/2026\nParaBank Is Now Re-Opened\nNew! Online Bill Pay\nNew! Online Account Transfers\nREAD MORE\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      },
+      "outcome": "ok",
+      "target": {
+        "ladder": {
+          "strategies": [
+            {
+              "kind": "label",
+              "text": "Password"
+            },
+            {
+              "kind": "nearby_text",
+              "text": "Password",
+              "direction": "below"
+            }
+          ],
+          "baselineRung": 2,
+          "rationale": "Recorded from a live run: its visible caption is \"Password\", which is what an operator reads because the application gives this control no name of its own."
+        },
+        "resolvedRung": 2
+      },
+      "credentialRef": "operator_password",
+      "after": {
+        "url": "http://localhost:8080/parabank/index.htm",
+        "title": "ParaBank | Welcome | Online Banking",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Customer Login"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "value": "john",
+            "nearbyText": "Username"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "nearbyText": "Password"
+          },
+          {
+            "role": "button",
+            "name": "Log In"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Forgot login info?",
+            "nearbyText": "Password"
+          },
+          {
+            "role": "link",
+            "name": "Forgot login info?"
+          },
+          {
+            "role": "link",
+            "name": "Register"
+          },
+          {
+            "role": "link",
+            "name": "Withdraw Funds"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Check Balances"
+          },
+          {
+            "role": "link",
+            "name": "Make Deposits"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Account History"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Read More"
+          },
+          {
+            "role": "heading",
+            "name": "Latest News"
+          },
+          {
+            "role": "link",
+            "name": "ParaBank Is Now Re-Opened"
+          },
+          {
+            "role": "link",
+            "name": "New! Online Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "New! Online Account Transfers"
+          },
+          {
+            "role": "link",
+            "name": "Read More"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nCustomer Login\nUsername\nPassword\nForgot login info?\nRegister\nATM Services\nWithdraw Funds\nTransfer Funds\nCheck Balances\nMake Deposits\nOnline Services\nBill Pay\nAccount History\nTransfer Funds\nREAD MORE\nLATEST NEWS\n08/25/2026\nParaBank Is Now Re-Opened\nNew! Online Bill Pay\nNew! Online Account Transfers\nREAD MORE\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      }
+    },
+    {
+      "turn": 3,
+      "thought": "Submit the login form to access banking functions needed for requesting a loan.",
+      "action": {
+        "kind": "click",
+        "target": {
+          "role": "button",
+          "name": "Log In"
+        }
+      },
+      "before": {
+        "url": "http://localhost:8080/parabank/index.htm",
+        "title": "ParaBank | Welcome | Online Banking",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Customer Login"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "value": "john",
+            "nearbyText": "Username"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "nearbyText": "Password"
+          },
+          {
+            "role": "button",
+            "name": "Log In"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Forgot login info?",
+            "nearbyText": "Password"
+          },
+          {
+            "role": "link",
+            "name": "Forgot login info?"
+          },
+          {
+            "role": "link",
+            "name": "Register"
+          },
+          {
+            "role": "link",
+            "name": "Withdraw Funds"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Check Balances"
+          },
+          {
+            "role": "link",
+            "name": "Make Deposits"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Account History"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Read More"
+          },
+          {
+            "role": "heading",
+            "name": "Latest News"
+          },
+          {
+            "role": "link",
+            "name": "ParaBank Is Now Re-Opened"
+          },
+          {
+            "role": "link",
+            "name": "New! Online Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "New! Online Account Transfers"
+          },
+          {
+            "role": "link",
+            "name": "Read More"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nCustomer Login\nUsername\nPassword\nForgot login info?\nRegister\nATM Services\nWithdraw Funds\nTransfer Funds\nCheck Balances\nMake Deposits\nOnline Services\nBill Pay\nAccount History\nTransfer Funds\nREAD MORE\nLATEST NEWS\n08/25/2026\nParaBank Is Now Re-Opened\nNew! Online Bill Pay\nNew! Online Account Transfers\nREAD MORE\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      },
+      "outcome": "ok",
+      "target": {
+        "ladder": {
+          "strategies": [
+            {
+              "kind": "role_name",
+              "role": "button",
+              "name": "Log In"
+            }
+          ],
+          "baselineRung": 1,
+          "rationale": "Recorded from a live run: the application names this control \"Log In\"."
+        },
+        "resolvedRung": 1
+      },
+      "after": {
+        "url": "http://localhost:8080/parabank/overview.htm",
+        "title": "ParaBank | Accounts Overview",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Welcome John Smith",
+            "nearbyText": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Account Services"
+          },
+          {
+            "role": "link",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Find Transactions"
+          },
+          {
+            "role": "link",
+            "name": "Update Contact Info"
+          },
+          {
+            "role": "link",
+            "name": "Request Loan"
+          },
+          {
+            "role": "link",
+            "name": "Log Out"
+          },
+          {
+            "role": "heading",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "12345",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "12345",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "-$2300.00",
+            "columnHeader": "Balance*",
+            "rowLabel": "12345"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$0.00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "12345"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "12456",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "12456",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$10.45",
+            "columnHeader": "Balance*",
+            "rowLabel": "12456"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$10.45",
+            "columnHeader": "Available Amount",
+            "rowLabel": "12456"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "12567",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "12567",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[down_payment_amount:redacted].00",
+            "columnHeader": "Balance*",
+            "rowLabel": "12567"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[down_payment_amount:redacted].00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "12567"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "12678",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "12678",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "-[down_payment_amount:redacted].00",
+            "columnHeader": "Balance*",
+            "rowLabel": "12678"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$0.00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "12678"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "12789",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "12789",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[down_payment_amount:redacted].00",
+            "columnHeader": "Balance*",
+            "rowLabel": "12789"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[down_payment_amount:redacted].00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "12789"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "12900",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "12900",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$0.00",
+            "columnHeader": "Balance*",
+            "rowLabel": "12900"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$0.00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "12900"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "13011",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "13011",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[down_payment_amount:redacted].00",
+            "columnHeader": "Balance*",
+            "rowLabel": "13011"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[down_payment_amount:redacted].00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "13011"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[funding_account_number:redacted]",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "[funding_account_number:redacted]",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[loan_amount:redacted].00",
+            "columnHeader": "Balance*",
+            "rowLabel": "[funding_account_number:redacted]"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[loan_amount:redacted].00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "[funding_account_number:redacted]"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "13233",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "13233",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[down_payment_amount:redacted].00",
+            "columnHeader": "Balance*",
+            "rowLabel": "13233"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[down_payment_amount:redacted].00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "13233"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "13344",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "13344",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$1231.10",
+            "columnHeader": "Balance*",
+            "rowLabel": "13344"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$1231.10",
+            "columnHeader": "Available Amount",
+            "rowLabel": "13344"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "13566",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "13566",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[loan_amount:redacted].00",
+            "columnHeader": "Balance*",
+            "rowLabel": "13566"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[loan_amount:redacted].00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "13566"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "54321",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "54321",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$1351.12",
+            "columnHeader": "Balance*",
+            "rowLabel": "54321"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$1351.12",
+            "columnHeader": "Available Amount",
+            "rowLabel": "54321"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Total",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$2592.67",
+            "columnHeader": "Balance*",
+            "rowLabel": "Total"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "*Balance includes deposits that may be subject to holds",
+            "columnHeader": "Account",
+            "nearbyText": "Total"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nWelcome John Smith\nAccount Services\nOpen New Account\nAccounts Overview\nTransfer Funds\nBill Pay\nFind Transactions\nUpdate Contact Info\nRequest Loan\nLog Out\nAccounts Overview\nAccount\tBalance*\tAvailable Amount\n12345\t-$2300.00\t$0.00\n12456\t$10.45\t$10.45\n12567\t[down_payment_amount:redacted].00\t[down_payment_amount:redacted].00\n12678\t-[down_payment_amount:redacted].00\t$0.00\n12789\t[down_payment_amount:redacted].00\t[down_payment_amount:redacted].00\n12900\t$0.00\t$0.00\n13011\t[down_payment_amount:redacted].00\t[down_payment_amount:redacted].00\n[funding_account_number:redacted]\t[loan_amount:redacted].00\t[loan_amount:redacted].00\n13233\t[down_payment_amount:redacted].00\t[down_payment_amount:redacted].00\n13344\t$1231.10\t$1231.10\n13566\t[loan_amount:redacted].00\t[loan_amount:redacted].00\n54321\t$1351.12\t$1351.12\nTotal\t$2592.67\n*Balance includes deposits that may be subject to holds\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      }
+    },
+    {
+      "turn": 4,
+      "thought": "Navigate to the loan request form to request a [loan_amount:redacted] loan with [down_payment_amount:redacted] down payment from account [funding_account_number:redacted].",
+      "action": {
+        "kind": "click",
+        "target": {
+          "role": "link",
+          "name": "Request Loan"
+        }
+      },
+      "before": {
+        "url": "http://localhost:8080/parabank/overview.htm",
+        "title": "ParaBank | Accounts Overview",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Welcome John Smith",
+            "nearbyText": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Account Services"
+          },
+          {
+            "role": "link",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Find Transactions"
+          },
+          {
+            "role": "link",
+            "name": "Update Contact Info"
+          },
+          {
+            "role": "link",
+            "name": "Request Loan"
+          },
+          {
+            "role": "link",
+            "name": "Log Out"
+          },
+          {
+            "role": "heading",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "12345",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "12345",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "-$2300.00",
+            "columnHeader": "Balance*",
+            "rowLabel": "12345"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$0.00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "12345"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "12456",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "12456",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$10.45",
+            "columnHeader": "Balance*",
+            "rowLabel": "12456"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$10.45",
+            "columnHeader": "Available Amount",
+            "rowLabel": "12456"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "12567",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "12567",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[down_payment_amount:redacted].00",
+            "columnHeader": "Balance*",
+            "rowLabel": "12567"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[down_payment_amount:redacted].00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "12567"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "12678",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "12678",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "-[down_payment_amount:redacted].00",
+            "columnHeader": "Balance*",
+            "rowLabel": "12678"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$0.00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "12678"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "12789",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "12789",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[down_payment_amount:redacted].00",
+            "columnHeader": "Balance*",
+            "rowLabel": "12789"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[down_payment_amount:redacted].00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "12789"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "12900",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "12900",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$0.00",
+            "columnHeader": "Balance*",
+            "rowLabel": "12900"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$0.00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "12900"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "13011",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "13011",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[down_payment_amount:redacted].00",
+            "columnHeader": "Balance*",
+            "rowLabel": "13011"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[down_payment_amount:redacted].00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "13011"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[funding_account_number:redacted]",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "[funding_account_number:redacted]",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[loan_amount:redacted].00",
+            "columnHeader": "Balance*",
+            "rowLabel": "[funding_account_number:redacted]"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[loan_amount:redacted].00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "[funding_account_number:redacted]"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "13233",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "13233",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[down_payment_amount:redacted].00",
+            "columnHeader": "Balance*",
+            "rowLabel": "13233"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[down_payment_amount:redacted].00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "13233"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "13344",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "13344",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$1231.10",
+            "columnHeader": "Balance*",
+            "rowLabel": "13344"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$1231.10",
+            "columnHeader": "Available Amount",
+            "rowLabel": "13344"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "13566",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "13566",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[loan_amount:redacted].00",
+            "columnHeader": "Balance*",
+            "rowLabel": "13566"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "[loan_amount:redacted].00",
+            "columnHeader": "Available Amount",
+            "rowLabel": "13566"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "54321",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "link",
+            "name": "54321",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$1351.12",
+            "columnHeader": "Balance*",
+            "rowLabel": "54321"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$1351.12",
+            "columnHeader": "Available Amount",
+            "rowLabel": "54321"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Total",
+            "columnHeader": "Account",
+            "nearbyText": "Available Amount"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "$2592.67",
+            "columnHeader": "Balance*",
+            "rowLabel": "Total"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "*Balance includes deposits that may be subject to holds",
+            "columnHeader": "Account",
+            "nearbyText": "Total"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nWelcome John Smith\nAccount Services\nOpen New Account\nAccounts Overview\nTransfer Funds\nBill Pay\nFind Transactions\nUpdate Contact Info\nRequest Loan\nLog Out\nAccounts Overview\nAccount\tBalance*\tAvailable Amount\n12345\t-$2300.00\t$0.00\n12456\t$10.45\t$10.45\n12567\t[down_payment_amount:redacted].00\t[down_payment_amount:redacted].00\n12678\t-[down_payment_amount:redacted].00\t$0.00\n12789\t[down_payment_amount:redacted].00\t[down_payment_amount:redacted].00\n12900\t$0.00\t$0.00\n13011\t[down_payment_amount:redacted].00\t[down_payment_amount:redacted].00\n[funding_account_number:redacted]\t[loan_amount:redacted].00\t[loan_amount:redacted].00\n13233\t[down_payment_amount:redacted].00\t[down_payment_amount:redacted].00\n13344\t$1231.10\t$1231.10\n13566\t[loan_amount:redacted].00\t[loan_amount:redacted].00\n54321\t$1351.12\t$1351.12\nTotal\t$2592.67\n*Balance includes deposits that may be subject to holds\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      },
+      "outcome": "ok",
+      "target": {
+        "ladder": {
+          "strategies": [
+            {
+              "kind": "role_name",
+              "role": "link",
+              "name": "Request Loan"
+            }
+          ],
+          "baselineRung": 1,
+          "rationale": "Recorded from a live run: the application names this control \"Request Loan\"."
+        },
+        "resolvedRung": 1
+      },
+      "after": {
+        "url": "http://localhost:8080/parabank/requestloan.htm",
+        "title": "ParaBank | Loan Request",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Welcome John Smith",
+            "nearbyText": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Account Services"
+          },
+          {
+            "role": "link",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Find Transactions"
+          },
+          {
+            "role": "link",
+            "name": "Update Contact Info"
+          },
+          {
+            "role": "link",
+            "name": "Request Loan"
+          },
+          {
+            "role": "link",
+            "name": "Log Out"
+          },
+          {
+            "role": "heading",
+            "name": "Apply for a Loan"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Loan Amount: $",
+            "nearbyText": "Apply for a Loan"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "nearbyText": "Loan Amount:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Down Payment: $",
+            "nearbyText": "Loan Amount:"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "nearbyText": "Down Payment:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "From account #:",
+            "nearbyText": "Down Payment:"
+          },
+          {
+            "role": "combobox",
+            "name": "",
+            "value": "12345",
+            "options": [
+              "12345",
+              "12456",
+              "12567",
+              "12678",
+              "12789",
+              "12900",
+              "13011",
+              "13233",
+              "13344",
+              "54321",
+              "13566",
+              "[funding_account_number:redacted]"
+            ],
+            "nearbyText": "From account #:"
+          },
+          {
+            "role": "button",
+            "name": "Apply Now"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nWelcome John Smith\nAccount Services\nOpen New Account\nAccounts Overview\nTransfer Funds\nBill Pay\nFind Transactions\nUpdate Contact Info\nRequest Loan\nLog Out\nApply for a Loan\nLoan Amount: $\nDown Payment: $\nFrom account #:\n12345\n12456\n12567\n12678\n12789\n12900\n13011\n13233\n13344\n54321\n13566\n[funding_account_number:redacted]\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      }
+    },
+    {
+      "turn": 5,
+      "thought": "Enter the requested loan amount of 1000.",
+      "action": {
+        "kind": "fill",
+        "target": {
+          "role": "textbox",
+          "nearbyText": "Loan Amount:"
+        },
+        "value": "1000"
+      },
+      "before": {
+        "url": "http://localhost:8080/parabank/requestloan.htm",
+        "title": "ParaBank | Loan Request",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Welcome John Smith",
+            "nearbyText": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Account Services"
+          },
+          {
+            "role": "link",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Find Transactions"
+          },
+          {
+            "role": "link",
+            "name": "Update Contact Info"
+          },
+          {
+            "role": "link",
+            "name": "Request Loan"
+          },
+          {
+            "role": "link",
+            "name": "Log Out"
+          },
+          {
+            "role": "heading",
+            "name": "Apply for a Loan"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Loan Amount: $",
+            "nearbyText": "Apply for a Loan"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "nearbyText": "Loan Amount:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Down Payment: $",
+            "nearbyText": "Loan Amount:"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "nearbyText": "Down Payment:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "From account #:",
+            "nearbyText": "Down Payment:"
+          },
+          {
+            "role": "combobox",
+            "name": "",
+            "value": "12345",
+            "options": [
+              "12345",
+              "12456",
+              "12567",
+              "12678",
+              "12789",
+              "12900",
+              "13011",
+              "13233",
+              "13344",
+              "54321",
+              "13566",
+              "[funding_account_number:redacted]"
+            ],
+            "nearbyText": "From account #:"
+          },
+          {
+            "role": "button",
+            "name": "Apply Now"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nWelcome John Smith\nAccount Services\nOpen New Account\nAccounts Overview\nTransfer Funds\nBill Pay\nFind Transactions\nUpdate Contact Info\nRequest Loan\nLog Out\nApply for a Loan\nLoan Amount: $\nDown Payment: $\nFrom account #:\n12345\n12456\n12567\n12678\n12789\n12900\n13011\n13233\n13344\n54321\n13566\n[funding_account_number:redacted]\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      },
+      "outcome": "ok",
+      "target": {
+        "ladder": {
+          "strategies": [
+            {
+              "kind": "label",
+              "text": "Loan Amount:"
+            },
+            {
+              "kind": "nearby_text",
+              "text": "Loan Amount:",
+              "direction": "below"
+            }
+          ],
+          "baselineRung": 2,
+          "rationale": "Recorded from a live run: its visible caption is \"Loan Amount:\", which is what an operator reads because the application gives this control no name of its own."
+        },
+        "resolvedRung": 2
+      },
+      "after": {
+        "url": "http://localhost:8080/parabank/requestloan.htm",
+        "title": "ParaBank | Loan Request",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Welcome John Smith",
+            "nearbyText": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Account Services"
+          },
+          {
+            "role": "link",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Find Transactions"
+          },
+          {
+            "role": "link",
+            "name": "Update Contact Info"
+          },
+          {
+            "role": "link",
+            "name": "Request Loan"
+          },
+          {
+            "role": "link",
+            "name": "Log Out"
+          },
+          {
+            "role": "heading",
+            "name": "Apply for a Loan"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Loan Amount: $",
+            "nearbyText": "Apply for a Loan"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "value": "1000",
+            "nearbyText": "Loan Amount:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Down Payment: $",
+            "nearbyText": "Loan Amount:"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "nearbyText": "Down Payment:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "From account #:",
+            "nearbyText": "Down Payment:"
+          },
+          {
+            "role": "combobox",
+            "name": "",
+            "value": "12345",
+            "options": [
+              "12345",
+              "12456",
+              "12567",
+              "12678",
+              "12789",
+              "12900",
+              "13011",
+              "13233",
+              "13344",
+              "54321",
+              "13566",
+              "[funding_account_number:redacted]"
+            ],
+            "nearbyText": "From account #:"
+          },
+          {
+            "role": "button",
+            "name": "Apply Now"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nWelcome John Smith\nAccount Services\nOpen New Account\nAccounts Overview\nTransfer Funds\nBill Pay\nFind Transactions\nUpdate Contact Info\nRequest Loan\nLog Out\nApply for a Loan\nLoan Amount: $\nDown Payment: $\nFrom account #:\n12345\n12456\n12567\n12678\n12789\n12900\n13011\n13233\n13344\n54321\n13566\n[funding_account_number:redacted]\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      }
+    },
+    {
+      "turn": 6,
+      "thought": "Enter the down payment amount of 100.",
+      "action": {
+        "kind": "fill",
+        "target": {
+          "role": "textbox",
+          "nearbyText": "Down Payment:"
+        },
+        "value": "100"
+      },
+      "before": {
+        "url": "http://localhost:8080/parabank/requestloan.htm",
+        "title": "ParaBank | Loan Request",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Welcome John Smith",
+            "nearbyText": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Account Services"
+          },
+          {
+            "role": "link",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Find Transactions"
+          },
+          {
+            "role": "link",
+            "name": "Update Contact Info"
+          },
+          {
+            "role": "link",
+            "name": "Request Loan"
+          },
+          {
+            "role": "link",
+            "name": "Log Out"
+          },
+          {
+            "role": "heading",
+            "name": "Apply for a Loan"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Loan Amount: $",
+            "nearbyText": "Apply for a Loan"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "value": "1000",
+            "nearbyText": "Loan Amount:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Down Payment: $",
+            "nearbyText": "Loan Amount:"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "nearbyText": "Down Payment:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "From account #:",
+            "nearbyText": "Down Payment:"
+          },
+          {
+            "role": "combobox",
+            "name": "",
+            "value": "12345",
+            "options": [
+              "12345",
+              "12456",
+              "12567",
+              "12678",
+              "12789",
+              "12900",
+              "13011",
+              "13233",
+              "13344",
+              "54321",
+              "13566",
+              "[funding_account_number:redacted]"
+            ],
+            "nearbyText": "From account #:"
+          },
+          {
+            "role": "button",
+            "name": "Apply Now"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nWelcome John Smith\nAccount Services\nOpen New Account\nAccounts Overview\nTransfer Funds\nBill Pay\nFind Transactions\nUpdate Contact Info\nRequest Loan\nLog Out\nApply for a Loan\nLoan Amount: $\nDown Payment: $\nFrom account #:\n12345\n12456\n12567\n12678\n12789\n12900\n13011\n13233\n13344\n54321\n13566\n[funding_account_number:redacted]\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      },
+      "outcome": "ok",
+      "target": {
+        "ladder": {
+          "strategies": [
+            {
+              "kind": "label",
+              "text": "Down Payment:"
+            },
+            {
+              "kind": "nearby_text",
+              "text": "Down Payment:",
+              "direction": "below"
+            }
+          ],
+          "baselineRung": 2,
+          "rationale": "Recorded from a live run: its visible caption is \"Down Payment:\", which is what an operator reads because the application gives this control no name of its own."
+        },
+        "resolvedRung": 2
+      },
+      "after": {
+        "url": "http://localhost:8080/parabank/requestloan.htm",
+        "title": "ParaBank | Loan Request",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Welcome John Smith",
+            "nearbyText": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Account Services"
+          },
+          {
+            "role": "link",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Find Transactions"
+          },
+          {
+            "role": "link",
+            "name": "Update Contact Info"
+          },
+          {
+            "role": "link",
+            "name": "Request Loan"
+          },
+          {
+            "role": "link",
+            "name": "Log Out"
+          },
+          {
+            "role": "heading",
+            "name": "Apply for a Loan"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Loan Amount: $",
+            "nearbyText": "Apply for a Loan"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "value": "1000",
+            "nearbyText": "Loan Amount:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Down Payment: $",
+            "nearbyText": "Loan Amount:"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "value": "100",
+            "nearbyText": "Down Payment:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "From account #:",
+            "nearbyText": "Down Payment:"
+          },
+          {
+            "role": "combobox",
+            "name": "",
+            "value": "12345",
+            "options": [
+              "12345",
+              "12456",
+              "12567",
+              "12678",
+              "12789",
+              "12900",
+              "13011",
+              "13233",
+              "13344",
+              "54321",
+              "13566",
+              "[funding_account_number:redacted]"
+            ],
+            "nearbyText": "From account #:"
+          },
+          {
+            "role": "button",
+            "name": "Apply Now"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nWelcome John Smith\nAccount Services\nOpen New Account\nAccounts Overview\nTransfer Funds\nBill Pay\nFind Transactions\nUpdate Contact Info\nRequest Loan\nLog Out\nApply for a Loan\nLoan Amount: $\nDown Payment: $\nFrom account #:\n12345\n12456\n12567\n12678\n12789\n12900\n13011\n13233\n13344\n54321\n13566\n[funding_account_number:redacted]\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      }
+    },
+    {
+      "turn": 7,
+      "thought": "Select the specified funding account [funding_account_number:redacted] for the loan down payment.",
+      "action": {
+        "kind": "select",
+        "target": {
+          "role": "combobox",
+          "nearbyText": "From account #:"
+        },
+        "value": "[funding_account_number:redacted]"
+      },
+      "before": {
+        "url": "http://localhost:8080/parabank/requestloan.htm",
+        "title": "ParaBank | Loan Request",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Welcome John Smith",
+            "nearbyText": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Account Services"
+          },
+          {
+            "role": "link",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Find Transactions"
+          },
+          {
+            "role": "link",
+            "name": "Update Contact Info"
+          },
+          {
+            "role": "link",
+            "name": "Request Loan"
+          },
+          {
+            "role": "link",
+            "name": "Log Out"
+          },
+          {
+            "role": "heading",
+            "name": "Apply for a Loan"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Loan Amount: $",
+            "nearbyText": "Apply for a Loan"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "value": "1000",
+            "nearbyText": "Loan Amount:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Down Payment: $",
+            "nearbyText": "Loan Amount:"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "value": "100",
+            "nearbyText": "Down Payment:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "From account #:",
+            "nearbyText": "Down Payment:"
+          },
+          {
+            "role": "combobox",
+            "name": "",
+            "value": "12345",
+            "options": [
+              "12345",
+              "12456",
+              "12567",
+              "12678",
+              "12789",
+              "12900",
+              "13011",
+              "13233",
+              "13344",
+              "54321",
+              "13566",
+              "[funding_account_number:redacted]"
+            ],
+            "nearbyText": "From account #:"
+          },
+          {
+            "role": "button",
+            "name": "Apply Now"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nWelcome John Smith\nAccount Services\nOpen New Account\nAccounts Overview\nTransfer Funds\nBill Pay\nFind Transactions\nUpdate Contact Info\nRequest Loan\nLog Out\nApply for a Loan\nLoan Amount: $\nDown Payment: $\nFrom account #:\n12345\n12456\n12567\n12678\n12789\n12900\n13011\n13233\n13344\n54321\n13566\n[funding_account_number:redacted]\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      },
+      "outcome": "ok",
+      "target": {
+        "ladder": {
+          "strategies": [
+            {
+              "kind": "label",
+              "text": "From account #:"
+            },
+            {
+              "kind": "nearby_text",
+              "text": "From account #:",
+              "direction": "below"
+            }
+          ],
+          "baselineRung": 2,
+          "rationale": "Recorded from a live run: its visible caption is \"From account #:\", which is what an operator reads because the application gives this control no name of its own."
+        },
+        "resolvedRung": 2
+      },
+      "after": {
+        "url": "http://localhost:8080/parabank/requestloan.htm",
+        "title": "ParaBank | Loan Request",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Welcome John Smith",
+            "nearbyText": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Account Services"
+          },
+          {
+            "role": "link",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Find Transactions"
+          },
+          {
+            "role": "link",
+            "name": "Update Contact Info"
+          },
+          {
+            "role": "link",
+            "name": "Request Loan"
+          },
+          {
+            "role": "link",
+            "name": "Log Out"
+          },
+          {
+            "role": "heading",
+            "name": "Apply for a Loan"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Loan Amount: $",
+            "nearbyText": "Apply for a Loan"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "value": "1000",
+            "nearbyText": "Loan Amount:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Down Payment: $",
+            "nearbyText": "Loan Amount:"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "value": "100",
+            "nearbyText": "Down Payment:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "From account #:",
+            "nearbyText": "Down Payment:"
+          },
+          {
+            "role": "combobox",
+            "name": "",
+            "value": "[funding_account_number:redacted]",
+            "options": [
+              "12345",
+              "12456",
+              "12567",
+              "12678",
+              "12789",
+              "12900",
+              "13011",
+              "13233",
+              "13344",
+              "54321",
+              "13566",
+              "[funding_account_number:redacted]"
+            ],
+            "nearbyText": "From account #:"
+          },
+          {
+            "role": "button",
+            "name": "Apply Now"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nWelcome John Smith\nAccount Services\nOpen New Account\nAccounts Overview\nTransfer Funds\nBill Pay\nFind Transactions\nUpdate Contact Info\nRequest Loan\nLog Out\nApply for a Loan\nLoan Amount: $\nDown Payment: $\nFrom account #:\n12345\n12456\n12567\n12678\n12789\n12900\n13011\n13233\n13344\n54321\n13566\n[funding_account_number:redacted]\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      }
+    },
+    {
+      "turn": 8,
+      "thought": "Submit the loan application now that amount, down payment, and funding account are set.",
+      "action": {
+        "kind": "click",
+        "target": {
+          "role": "button",
+          "name": "Apply Now"
+        }
+      },
+      "before": {
+        "url": "http://localhost:8080/parabank/requestloan.htm",
+        "title": "ParaBank | Loan Request",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Welcome John Smith",
+            "nearbyText": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Account Services"
+          },
+          {
+            "role": "link",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Find Transactions"
+          },
+          {
+            "role": "link",
+            "name": "Update Contact Info"
+          },
+          {
+            "role": "link",
+            "name": "Request Loan"
+          },
+          {
+            "role": "link",
+            "name": "Log Out"
+          },
+          {
+            "role": "heading",
+            "name": "Apply for a Loan"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Loan Amount: $",
+            "nearbyText": "Apply for a Loan"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "value": "1000",
+            "nearbyText": "Loan Amount:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Down Payment: $",
+            "nearbyText": "Loan Amount:"
+          },
+          {
+            "role": "textbox",
+            "name": "",
+            "value": "100",
+            "nearbyText": "Down Payment:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "From account #:",
+            "nearbyText": "Down Payment:"
+          },
+          {
+            "role": "combobox",
+            "name": "",
+            "value": "[funding_account_number:redacted]",
+            "options": [
+              "12345",
+              "12456",
+              "12567",
+              "12678",
+              "12789",
+              "12900",
+              "13011",
+              "13233",
+              "13344",
+              "54321",
+              "13566",
+              "[funding_account_number:redacted]"
+            ],
+            "nearbyText": "From account #:"
+          },
+          {
+            "role": "button",
+            "name": "Apply Now"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nWelcome John Smith\nAccount Services\nOpen New Account\nAccounts Overview\nTransfer Funds\nBill Pay\nFind Transactions\nUpdate Contact Info\nRequest Loan\nLog Out\nApply for a Loan\nLoan Amount: $\nDown Payment: $\nFrom account #:\n12345\n12456\n12567\n12678\n12789\n12900\n13011\n13233\n13344\n54321\n13566\n[funding_account_number:redacted]\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      },
+      "outcome": "ok",
+      "target": {
+        "ladder": {
+          "strategies": [
+            {
+              "kind": "role_name",
+              "role": "button",
+              "name": "Apply Now"
+            }
+          ],
+          "baselineRung": 1,
+          "rationale": "Recorded from a live run: the application names this control \"Apply Now\"."
+        },
+        "resolvedRung": 1
+      },
+      "after": {
+        "url": "http://localhost:8080/parabank/requestloan.htm",
+        "title": "ParaBank | Loan Request",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Welcome John Smith",
+            "nearbyText": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Account Services"
+          },
+          {
+            "role": "link",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Find Transactions"
+          },
+          {
+            "role": "link",
+            "name": "Update Contact Info"
+          },
+          {
+            "role": "link",
+            "name": "Request Loan"
+          },
+          {
+            "role": "link",
+            "name": "Log Out"
+          },
+          {
+            "role": "heading",
+            "name": "Loan Request Processed"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Loan Provider:",
+            "nearbyText": "Loan Request Processed"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Wealth Securities Dynamic Loans (WSDL)",
+            "rowLabel": "Loan Provider:",
+            "nearbyText": "Loan Provider:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Date:",
+            "nearbyText": "Wealth Securities Dynamic Loans (WSDL)"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "08-25-2026",
+            "rowLabel": "Date:",
+            "nearbyText": "Date:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Status:",
+            "nearbyText": "Date:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Approved",
+            "rowLabel": "Status:",
+            "nearbyText": "Status:"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Congratulations, your loan has been approved.",
+            "nearbyText": "Approved"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Your new account number: 13677",
+            "nearbyText": "Congratulations, your loan has been approved."
+          },
+          {
+            "role": "link",
+            "name": "13677",
+            "nearbyText": "Your new account number:"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nWelcome John Smith\nAccount Services\nOpen New Account\nAccounts Overview\nTransfer Funds\nBill Pay\nFind Transactions\nUpdate Contact Info\nRequest Loan\nLog Out\nLoan Request Processed\nLoan Provider:\tWealth Securities Dynamic Loans (WSDL)\nDate:\t08-25-2026\nStatus:\tApproved\nCongratulations, your loan has been approved.\nYour new account number: 13677\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      }
+    },
+    {
+      "turn": 9,
+      "thought": "Record the displayed loan approval status from the Status field.",
+      "action": {
+        "kind": "read",
+        "target": {
+          "role": "cell",
+          "nearbyText": "Status:",
+          "rowLabel": "Status:"
+        },
+        "outputName": "loan_status"
+      },
+      "before": {
+        "url": "http://localhost:8080/parabank/requestloan.htm",
+        "title": "ParaBank | Loan Request",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Welcome John Smith",
+            "nearbyText": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Account Services"
+          },
+          {
+            "role": "link",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Find Transactions"
+          },
+          {
+            "role": "link",
+            "name": "Update Contact Info"
+          },
+          {
+            "role": "link",
+            "name": "Request Loan"
+          },
+          {
+            "role": "link",
+            "name": "Log Out"
+          },
+          {
+            "role": "heading",
+            "name": "Loan Request Processed"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Loan Provider:",
+            "nearbyText": "Loan Request Processed"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Wealth Securities Dynamic Loans (WSDL)",
+            "rowLabel": "Loan Provider:",
+            "nearbyText": "Loan Provider:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Date:",
+            "nearbyText": "Wealth Securities Dynamic Loans (WSDL)"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "08-25-2026",
+            "rowLabel": "Date:",
+            "nearbyText": "Date:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Status:",
+            "nearbyText": "Date:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Approved",
+            "rowLabel": "Status:",
+            "nearbyText": "Status:"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Congratulations, your loan has been approved.",
+            "nearbyText": "Approved"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Your new account number: 13677",
+            "nearbyText": "Congratulations, your loan has been approved."
+          },
+          {
+            "role": "link",
+            "name": "13677",
+            "nearbyText": "Your new account number:"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nWelcome John Smith\nAccount Services\nOpen New Account\nAccounts Overview\nTransfer Funds\nBill Pay\nFind Transactions\nUpdate Contact Info\nRequest Loan\nLog Out\nLoan Request Processed\nLoan Provider:\tWealth Securities Dynamic Loans (WSDL)\nDate:\t08-25-2026\nStatus:\tApproved\nCongratulations, your loan has been approved.\nYour new account number: 13677\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      },
+      "outcome": "ok",
+      "target": {
+        "ladder": {
+          "strategies": [
+            {
+              "kind": "label",
+              "text": "Status:"
+            },
+            {
+              "kind": "nearby_text",
+              "text": "Status:",
+              "direction": "below"
+            }
+          ],
+          "baselineRung": 2,
+          "rationale": "Recorded from a live run: its visible caption is \"Status:\", which is what an operator reads because the application gives this control no name of its own."
+        },
+        "resolvedRung": 2
+      },
+      "extracted": {
+        "name": "loan_status",
+        "value": "Approved"
+      },
+      "after": {
+        "url": "http://localhost:8080/parabank/requestloan.htm",
+        "title": "ParaBank | Loan Request",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Welcome John Smith",
+            "nearbyText": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Account Services"
+          },
+          {
+            "role": "link",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Find Transactions"
+          },
+          {
+            "role": "link",
+            "name": "Update Contact Info"
+          },
+          {
+            "role": "link",
+            "name": "Request Loan"
+          },
+          {
+            "role": "link",
+            "name": "Log Out"
+          },
+          {
+            "role": "heading",
+            "name": "Loan Request Processed"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Loan Provider:",
+            "nearbyText": "Loan Request Processed"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Wealth Securities Dynamic Loans (WSDL)",
+            "rowLabel": "Loan Provider:",
+            "nearbyText": "Loan Provider:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Date:",
+            "nearbyText": "Wealth Securities Dynamic Loans (WSDL)"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "08-25-2026",
+            "rowLabel": "Date:",
+            "nearbyText": "Date:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Status:",
+            "nearbyText": "Date:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Approved",
+            "rowLabel": "Status:",
+            "nearbyText": "Status:"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Congratulations, your loan has been approved.",
+            "nearbyText": "Approved"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Your new account number: 13677",
+            "nearbyText": "Congratulations, your loan has been approved."
+          },
+          {
+            "role": "link",
+            "name": "13677",
+            "nearbyText": "Your new account number:"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nWelcome John Smith\nAccount Services\nOpen New Account\nAccounts Overview\nTransfer Funds\nBill Pay\nFind Transactions\nUpdate Contact Info\nRequest Loan\nLog Out\nLoan Request Processed\nLoan Provider:\tWealth Securities Dynamic Loans (WSDL)\nDate:\t08-25-2026\nStatus:\tApproved\nCongratulations, your loan has been approved.\nYour new account number: 13677\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      }
+    },
+    {
+      "turn": 10,
+      "thought": "Loan was requested and the status value has been read.",
+      "action": {
+        "kind": "done",
+        "summary": "Submitted a [loan_amount:redacted] loan request with a [down_payment_amount:redacted] down payment from account [funding_account_number:redacted] and recorded the resulting loan status."
+      },
+      "before": {
+        "url": "http://localhost:8080/parabank/requestloan.htm",
+        "title": "ParaBank | Loan Request",
+        "nodes": [
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Admin Page"
+          },
+          {
+            "role": "link",
+            "name": "home"
+          },
+          {
+            "role": "link",
+            "name": "about"
+          },
+          {
+            "role": "link",
+            "name": "contact"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Welcome John Smith",
+            "nearbyText": "contact"
+          },
+          {
+            "role": "heading",
+            "name": "Account Services"
+          },
+          {
+            "role": "link",
+            "name": "Open New Account"
+          },
+          {
+            "role": "link",
+            "name": "Accounts Overview"
+          },
+          {
+            "role": "link",
+            "name": "Transfer Funds"
+          },
+          {
+            "role": "link",
+            "name": "Bill Pay"
+          },
+          {
+            "role": "link",
+            "name": "Find Transactions"
+          },
+          {
+            "role": "link",
+            "name": "Update Contact Info"
+          },
+          {
+            "role": "link",
+            "name": "Request Loan"
+          },
+          {
+            "role": "link",
+            "name": "Log Out"
+          },
+          {
+            "role": "heading",
+            "name": "Loan Request Processed"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Loan Provider:",
+            "nearbyText": "Loan Request Processed"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Wealth Securities Dynamic Loans (WSDL)",
+            "rowLabel": "Loan Provider:",
+            "nearbyText": "Loan Provider:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Date:",
+            "nearbyText": "Wealth Securities Dynamic Loans (WSDL)"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "08-25-2026",
+            "rowLabel": "Date:",
+            "nearbyText": "Date:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Status:",
+            "nearbyText": "Date:"
+          },
+          {
+            "role": "cell",
+            "name": "",
+            "value": "Approved",
+            "rowLabel": "Status:",
+            "nearbyText": "Status:"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Congratulations, your loan has been approved.",
+            "nearbyText": "Approved"
+          },
+          {
+            "role": "paragraph",
+            "name": "",
+            "value": "Your new account number: 13677",
+            "nearbyText": "Congratulations, your loan has been approved."
+          },
+          {
+            "role": "link",
+            "name": "13677",
+            "nearbyText": "Your new account number:"
+          },
+          {
+            "role": "link",
+            "name": "Home"
+          },
+          {
+            "role": "link",
+            "name": "About Us"
+          },
+          {
+            "role": "link",
+            "name": "Services"
+          },
+          {
+            "role": "link",
+            "name": "Products"
+          },
+          {
+            "role": "link",
+            "name": "Locations"
+          },
+          {
+            "role": "link",
+            "name": "Forum"
+          },
+          {
+            "role": "link",
+            "name": "Site Map"
+          },
+          {
+            "role": "link",
+            "name": "Contact Us"
+          },
+          {
+            "role": "link",
+            "name": "www.parasoft.com"
+          }
+        ],
+        "text": "Experience the difference\nSolutions\nAbout Us\nServices\nProducts\nLocations\nAdmin Page\nhome\nabout\ncontact\nWelcome John Smith\nAccount Services\nOpen New Account\nAccounts Overview\nTransfer Funds\nBill Pay\nFind Transactions\nUpdate Contact Info\nRequest Loan\nLog Out\nLoan Request Processed\nLoan Provider:\tWealth Securities Dynamic Loans (WSDL)\nDate:\t08-25-2026\nStatus:\tApproved\nCongratulations, your loan has been approved.\nYour new account number: 13677\nHome|\nAbout Us|\nServices|\nProducts|\nLocations|\nForum|\nSite Map|\nContact Us\n© Parasoft. All rights reserved.\nVisit us at:\nwww.parasoft.com",
+        "dialogs": []
+      },
+      "outcome": "ok"
+    }
+  ],
+  "outputs": {
+    "loan_status": "Approved"
+  },
+  "stopReason": "Submitted a [loan_amount:redacted] loan request with a [down_payment_amount:redacted] down payment from account [funding_account_number:redacted] and recorded the resulting loan status.",
+  "evidenceDir": "evidence/discover-2026-08-25T20-14-31-363Z"
+}

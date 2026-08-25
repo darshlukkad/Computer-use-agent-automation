@@ -10,11 +10,29 @@ the answer, the disk gets a fingerprint. See `src/evidence/recorder.ts`.
 
 ## The discovery runs — §4's one non-negotiable
 
-| Directory | Capability | Turns | Model |
+| Directory | Capability | Turns | Outcome |
 |---|---|---|---|
-| `discover-2026-08-19T22-44-23-333Z` | `account.lookup_balance` | 5 | `openai:gpt-5.2` |
-| `discover-2026-08-19T22-45-23-218Z` | `account.transfer_funds` | 10 | `openai:gpt-5.2` |
-| `discover-2026-08-19T22-46-10-112Z` | `account.open_new_account` | 9 | `openai:gpt-5.2` |
+| `discover-2026-08-19T22-44-23-333Z` | `account.lookup_balance` | 5 | success |
+| `discover-2026-08-19T22-45-23-218Z` | `account.transfer_funds` | 10 | success |
+| `discover-2026-08-19T22-46-10-112Z` | `account.open_new_account` | 9 | success |
+| `discover-2026-08-25T20-02-50-232Z` | `account.request_loan` | 8 | **stuck** |
+| `discover-2026-08-25T20-14-31-363Z` | `account.request_loan` | 10 | success |
+
+All on `openai:gpt-5.2`.
+
+**The stuck run is kept deliberately.** It is the more informative of the two. Pointed at
+ParaBank's loan form — a screen nothing here had been tried against — the run failed, and
+failed in the right way: three attempts at the amount field, then
+
+> *"The Loan Amount textbox is resolving to a non-input table cell, so I cannot enter the
+> amount."*
+
+That diagnosis was correct, and it was a bug in our perception rather than in the model's
+reasoning. The loan form separates caption from field across table cells, `<td>` counted as a
+control, and in document order the cell precedes the input it holds — so a caption walk stopped
+at the cell. What matters for reading this evidence is what the run did *not* do: it did not
+click something else and call it done, and it did not report success. `tests/surface.test.ts`
+now covers that markup, and the run at 20-14-31 is the same goal after a four-line fix.
 
 Each holds `trace.json` (every turn: what the model saw, what it decided and why, the ladder
 we synthesised from its target, which rung actually resolved, and the page before and after),
@@ -22,8 +40,8 @@ we synthesised from its target, which rung actually resolved, and the page befor
 
 These keep their timestamped names on purpose. Each artifact's `provenance.discoveryRunId`
 points at one of them, so renaming them to something tidier would leave provenance pointing
-at nothing. The three capabilities in `/capabilities` were produced by these three runs and
-by nothing else — there is no hand-written artifact in the repository.
+at nothing. The four capabilities in `/capabilities` were produced by these runs and by
+nothing else — there is no hand-written artifact in the repository.
 
 ## The replay runs
 
@@ -62,7 +80,7 @@ dropped rather than committed.
 
 The capability replayed there, `walkthrough.temporary`, was a copy of
 `account.lookup_balance` with one locator deliberately broken. It was deleted afterwards —
-`/capabilities` holds only the three real ones.
+`/capabilities` holds only the four real ones.
 
 ## Reproducing any of it
 

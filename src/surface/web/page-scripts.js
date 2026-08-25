@@ -322,12 +322,31 @@ function nearby(caption, axis) {
     return s.visibility !== "hidden" && s.display !== "none";
   }
 
-  // P is included so a value stated as a sentence can be read; a paragraph is never
-  // the target of a click.
+  // TD and P are included so a value stated in a cell or a sentence can be READ. They
+  // are containers, though, and a container that wraps the real control must not stand
+  // in for it — ParaBank's loan form puts the caption and the field in adjacent cells:
+  //
+  //   <td align="right"><b>Loan Amount:</b> $</td>
+  //   <td><input id="amount"/></td>
+  //
+  // In document order that second <td> comes before the <input> it holds, so a caption
+  // walk resolved to the cell and every attempt to type into it failed. A live discovery
+  // run found this: the model reported, correctly, that the field "resolves to a <td>
+  // element", tried three ways around it, and gave up.
+  //
+  // Rejecting such a container lets the same walk continue one step and land on the
+  // control. A cell holding only text is still itself, so reads are unaffected.
+  function holdsEditable(el) {
+    return el.querySelector("input, select, textarea, button") !== null;
+  }
+
   function isControl(el) {
     var t = el.tagName;
-    return t === "INPUT" || t === "SELECT" || t === "TEXTAREA" || t === "BUTTON" ||
-           t === "A" || t === "TD" || t === "P";
+    if (t === "INPUT" || t === "SELECT" || t === "TEXTAREA" || t === "BUTTON" || t === "A") {
+      return true;
+    }
+    if (t === "TD" || t === "P") return !holdsEditable(el);
+    return false;
   }
 
   function uniquePath(el) {

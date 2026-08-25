@@ -34,13 +34,22 @@ const RUNNER_VERSION = "0.1.0";
  * `idempotent_write` / `safe`, which would have made a money-moving capability
  * auto-approvable and nominally retry-safe.
  *
+ * `apply` and `request` were added after a loan-request run showed the miss rather than
+ * the over-trigger: ParaBank labels that button "Apply Now", which matched nothing, so a
+ * step that submitted a loan application — approved on the spot, creating an account —
+ * compiled as `safe` and nominally retry-safe. Nothing here caught it; reading the
+ * artifact afterwards did.
+ *
  * ponytail: a name-pattern heuristic, and it will both miss and over-trigger. It fails
  * in the safe direction — over-classifying only costs an approval — and the caller can
- * override with an explicit risk. The upgrade path is a per-product control registry,
- * or asking the application which of its actions are transactional; neither is
- * something to invent from a name pattern, and neither belongs in a take-home.
+ * override with an explicit risk. The loan run is the argument for not trusting it: a
+ * verb this list does not know is a commitment silently graded as safe, and the list
+ * cannot be completed by thinking harder about it. The upgrade path is a per-product
+ * control registry, or asking the application which of its actions are transactional;
+ * until then, `--risk` on anything that moves money or creates a record is the
+ * dependable half of this, and every artifact compiles to draft regardless.
  */
-const COMMITS = /\b(transfer|submit|confirm|pay|send|authoris?e|authorize|withdraw|deposit|delete|remove|close|cancel|approve|post|wire|open (a |an )?(new )?account)\b/i;
+const COMMITS = /\b(transfer|submit|confirm|pay|send|authoris?e|authorize|withdraw|deposit|delete|remove|close|cancel|approve|post|wire|apply|request|open (a |an )?(new )?account)\b/i;
 
 /** Whether the control is the kind of thing that submits, as opposed to navigates. */
 function isButtonLike(t: Target): boolean {

@@ -103,6 +103,16 @@ within one form: submit buttons resolve at rung 1 (an `<input type=submit>` take
 `value`), while the text fields beside them resolve at rung 1 and 2 to **zero** elements and are
 found only by their visible caption. Both are measured in `tests/surface.test.ts`.
 
+The way that generalises was tested by pointing a discovery run at a screen this project had
+never touched — ParaBank's loan request, which separates caption from field across table cells
+with a currency symbol between them. It failed, because a `<td>` counted as a control and in
+document order the cell precedes the input it contains, so typing went to the cell. Worth
+recording as the honest shape of the risk: perception on an unfamiliar screen is where this
+breaks, the fix was four lines, and the run that found it is the reason there is now a
+regression test for that markup. A caption walk that stops at a container holding the real
+control is a bug the *model* reported, having tried three ways around it and then declared
+itself stuck rather than inventing a success.
+
 Multi-tenant execution is out of scope per §3.7, so what follows is the design. A tenant gets an
 **overlay**, not a fork: one base plus 200 overlays of eight lines, versus 200 forks of 200
 lines, where a fix in the base reaches everyone. An overlay may change copy, entry path, origins
