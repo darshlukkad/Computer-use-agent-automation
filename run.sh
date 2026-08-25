@@ -120,11 +120,27 @@ write_env() {
 
 # --- the target application ------------------------------------------------
 
+# The WAR Maven actually produced, if any. Named from the POM, so the version moves.
+produced_war() {
+  find "${APP_DIR}/target" -maxdepth 1 -name 'parabank-*.war' ! -name '*-sources*' 2>/dev/null | head -1
+}
+
 build_war() {
   if [ -f "${APP_DIR}/target/parabank.war" ]; then
     skip "parabank.war already built"
     return
   fi
+
+  # Maven may already have run — a build that succeeded but tripped over the renaming
+  # step should not cost another five minutes to recover from.
+  local existing
+  existing="$(produced_war)"
+  if [ -n "$existing" ]; then
+    cp "$existing" "${APP_DIR}/target/parabank.war"
+    ok "parabank.war taken from the existing build ($(basename "$existing"))"
+    return
+  fi
+
   step "Building ParaBank (Maven runs in a container; no JDK on the host)"
   echo "    first time only, a few minutes"
 
@@ -147,8 +163,17 @@ build_war() {
     -e MAVEN_CONFIG=/var/maven/.m2 \
     maven:3.9-eclipse-temurin-21 \
     mvn -q -Duser.home=/var/maven clean package -DskipTests
-  [ -f "${APP_DIR}/target/parabank.war" ] || die "the Maven build finished but produced no parabank.war."
-  ok "parabank.war built"
+
+  # Maven names the artifact from the POM: parabank-5.0.0-SNAPSHOT.war. The vendored
+  # Dockerfile copies `target/parabank.war`. That gap was bridged by hand the first
+  # time and never written down, so the documented steps built a WAR the image could
+  # not find. Renaming here rather than editing the Dockerfile, which is upstream's
+  # and stays untouched.
+  local produced
+  produced="$(produced_war)"
+  [ -n "$produced" ] || die "the Maven build finished but produced no .war in ${APP_DIR}/target."
+  cp "$produced" "${APP_DIR}/target/parabank.war"
+  ok "parabank.war built ($(du -h "${APP_DIR}/target/parabank.war" | cut -f1), from $(basename "$produced"))"
 }
 
 build_image() {

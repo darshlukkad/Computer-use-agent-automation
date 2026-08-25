@@ -77,6 +77,10 @@ docker run --rm -u "$(id -u):$(id -g)" \
   -e MAVEN_CONFIG=/var/maven/.m2 \
   maven:3.9-eclipse-temurin-21 \
   mvn -q -Duser.home=/var/maven clean package -DskipTests
+
+# Maven names the WAR from the POM; the vendored Dockerfile expects target/parabank.war
+cp target/parabank-*.war target/parabank.war
+
 docker build -t parabank-local .
 docker run -d --name parabank -p 8080:8080 parabank-local
 cd ..

@@ -48,10 +48,17 @@ docker run --rm -u "$(id -u):$(id -g)" \
   maven:3.9-eclipse-temurin-21 \
   mvn -q -Duser.home=/var/maven clean package -DskipTests
 
-# 2. build and run the image
+# 2. give the WAR the name the Dockerfile expects
+#    Maven names it from the POM (parabank-5.0.0-SNAPSHOT.war); the Dockerfile copies
+#    target/parabank.war. We rename rather than edit the Dockerfile, which is upstream's.
+cp target/parabank-*.war target/parabank.war
+
+# 3. build and run the image
 docker build -t parabank-local .
 docker run -d --name parabank -p 8080:8080 parabank-local
 ```
+
+`../run.sh` does all of this, and skips whatever is already done.
 
 Then open http://localhost:8080/parabank/index.htm — the app initializes its own embedded
 HSQLDB on first request. Demo credentials are `john` / `demo`.
